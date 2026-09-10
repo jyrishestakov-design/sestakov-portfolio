@@ -172,14 +172,14 @@
   .entry-row {
     display: grid; grid-template-columns: 3.4rem minmax(0,1fr) auto;
     gap: 1rem 1.4rem; align-items: baseline; padding: 1.15rem 0;
-    cursor: pointer; width: 100%; background: none; border: 0; text-align: left; color: inherit; font: inherit;
+    cursor: pointer;
   }
   .entry-row:hover .title { color: var(--accent); }
   .idx { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
   .entry.todo .idx { color: var(--accent); }
-  .title { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.15rem, 2.6vw, 1.7rem); line-height: 1.15; transition: color .15s; }
+  .title { display: block; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.15rem, 2.6vw, 1.7rem); line-height: 1.15; transition: color .15s; }
   .title .en { color: var(--ink-dim); font-weight: 400; font-size: .8em; }
-  .roles { margin-top: .3rem; font-family: var(--font-mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-dim); }
+  .roles { display: block; margin-top: .35rem; font-family: var(--font-mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-dim); }
   .year { font-family: var(--font-mono); font-size: .82rem; color: var(--ink-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
   .panel { overflow: hidden; max-height: 0; transition: max-height .4s ease; }
@@ -332,14 +332,14 @@
       <div class="log">
 
         <div class="entry todo" data-open="false">
-          <button class="entry-row" type="button" aria-expanded="false">
+          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
             <span class="idx">— —</span>
             <span>
               <span class="title">Showreel 2026 <span class="en">/ 3D + 2D</span></span>
               <span class="roles">Lisata · Vimeo / YouTube embed</span>
             </span>
             <span class="year">—</span>
-          </button>
+          </div>
           <div class="panel"><div class="panel-inner">
             <div class="frame"></div>
             <div class="spec">
@@ -355,14 +355,14 @@
         </div>
 
         <div class="entry todo" data-open="false">
-          <button class="entry-row" type="button" aria-expanded="false">
+          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
             <span class="idx">— —</span>
             <span>
               <span class="title">Hiljutine operaatoritöö <span class="en">/ reklaam · muusikavideo</span></span>
               <span class="roles">Lisata</span>
             </span>
             <span class="year">2020–26</span>
-          </button>
+          </div>
           <div class="panel"><div class="panel-inner">
             <div class="frame"></div>
             <div class="spec">
@@ -378,14 +378,14 @@
         </div>
 
         <div class="entry todo" data-open="false">
-          <button class="entry-row" type="button" aria-expanded="false">
+          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
             <span class="idx">— —</span>
             <span>
               <span class="title">2D animatsioon / motion design <span class="en">/ selgitusvideo · tiitlid</span></span>
               <span class="roles">Lisata</span>
             </span>
             <span class="year">—</span>
-          </button>
+          </div>
           <div class="panel"><div class="panel-inner">
             <div class="frame"></div>
             <div class="spec">
@@ -401,14 +401,14 @@
         </div>
 
         <div class="entry" data-open="false">
-          <button class="entry-row" type="button" aria-expanded="false">
+          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
             <span class="idx">05</span>
             <span>
               <span class="title">Putting Lipstick on a Pig</span>
               <span class="roles">Monteerija · dokumentaalfilm</span>
             </span>
             <span class="year">2018</span>
-          </button>
+          </div>
           <div class="panel"><div class="panel-inner">
             <div class="frame"></div>
             <div class="spec">
@@ -426,14 +426,14 @@
         </div>
 
         <div class="entry" data-open="false">
-          <button class="entry-row" type="button" aria-expanded="false">
+          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
             <span class="idx">04</span>
             <span>
               <span class="title">Hundi süda sees</span>
               <span class="roles">Operaator · dokumentaalfilm</span>
             </span>
             <span class="year">2015</span>
-          </button>
+          </div>
           <div class="panel"><div class="panel-inner">
             <div class="frame"></div>
             <div class="spec">
@@ -451,14 +451,14 @@
         </div>
 
         <div class="entry" data-open="false">
-          <button class="entry-row" type="button" aria-expanded="false">
+          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
             <span class="idx">03</span>
             <span>
               <span class="title">Romeo, Julia ja Jüri</span>
               <span class="roles">Operaator + monteerija · ETV · 28 min</span>
             </span>
             <span class="year">2010</span>
-          </button>
+          </div>
           <div class="panel"><div class="panel-inner">
             <div class="frame"></div>
             <div class="spec">
@@ -476,14 +476,14 @@
         </div>
 
         <div class="entry" data-open="false">
-          <button class="entry-row" type="button" aria-expanded="false">
+          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
             <span class="idx">02</span>
             <span>
               <span class="title">Soovide puu <span class="en">/ The Wish Tree</span></span>
               <span class="roles">Monteerimine / VFX · mängufilm</span>
             </span>
             <span class="year">2008</span>
-          </button>
+          </div>
           <div class="panel"><div class="panel-inner">
             <div class="frame"></div>
             <div class="spec">
@@ -501,14 +501,14 @@
         </div>
 
         <div class="entry" data-open="false">
-          <button class="entry-row" type="button" aria-expanded="false">
+          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
             <span class="idx">01</span>
             <span>
               <span class="title">Malev</span>
               <span class="roles">Monteerija · action-komöödia</span>
             </span>
             <span class="year">2005</span>
-          </button>
+          </div>
           <div class="panel"><div class="panel-inner">
             <div class="frame"></div>
             <div class="spec">
@@ -657,10 +657,14 @@
   // ---- shot log expand
   document.querySelectorAll('.entry').forEach(function (entry) {
     var btn = entry.querySelector('.entry-row');
-    btn.addEventListener('click', function () {
+    function toggle() {
       var open = entry.getAttribute('data-open') === 'true';
       entry.setAttribute('data-open', open ? 'false' : 'true');
       btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    }
+    btn.addEventListener('click', toggle);
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
     });
   });
 
