@@ -199,6 +199,9 @@
     font-family: var(--font-mono); font-size: .6rem; letter-spacing: .12em;
     color: #0C0D11; background: color-mix(in srgb, #ECE7DD 78%, transparent); padding: 2px 5px;
   }
+  .frame.frame--live { background: var(--surface); }
+  .frame.frame--live::after { content: none; }
+  .spec a.btn { margin-top: .9rem; }
   .spec { font-family: var(--font-mono); font-size: .78rem; line-height: 1.9; align-self: start; }
   .spec dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0 1rem; }
   .spec dt { color: var(--muted); letter-spacing: .08em; text-transform: uppercase; font-size: .68rem; }
@@ -296,21 +299,13 @@
         <span class="hud-corner bl">3200K · f/2.0</span>
         <span class="hud-corner brc">24 FPS</span>
 
-        <div class="eyebrow">
-          <span class="on">Operaator</span>
-          <span class="on">3D / 2D animatsioon</span>
-          <span class="on">Videograaf</span>
-          <span>Tallinn, EE</span>
-        </div>
+        <div class="eyebrow" id="eyebrow"></div>
 
-        <h1>
-          <span class="line"><span>Jüri-Illimar</span></span>
-          <span class="line"><span>Reinberg-Šestakov</span></span>
-        </h1>
+        <h1 id="heroName"></h1>
 
         <div class="hero-foot">
-          <p>Kaamera taga ja kaadri sees — dokumentaalvõte, monteerimislaud ja kaader kaadri haaval ehitatud animatsioon ühe inimese käe all.</p>
-          <span class="scrollcue">↓ Keri — 5 logitud tööd</span>
+          <p id="heroStatement"></p>
+          <span class="scrollcue" id="scrollcue"></span>
         </div>
       </div>
     </div>
@@ -323,223 +318,16 @@
         <span class="count">FAIL: avalikest andmebaasidest · uuenda oma materjaliga</span>
       </div>
 
-      <p class="flag">
-        <b>Mustand.</b> Allolev on kokku otsitud avalikest allikatest (IMDb, EFIS). Kolm ülemist rida on
-        tühjad kohad — lisa oma showreel, hiljutine operaatoritöö ja animatsioonitööd. Iga rea "tehniline
-        leht" (formaat / kaamera / objektiiv / fps) on täitmiseks.
-      </p>
+      <p class="flag" id="logFlag" hidden></p>
 
-      <div class="log">
-
-        <div class="entry todo" data-open="false">
-          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
-            <span class="idx">— —</span>
-            <span>
-              <span class="title">Showreel 2026 <span class="en">/ 3D + 2D</span></span>
-              <span class="roles">Lisata · Vimeo / YouTube embed</span>
-            </span>
-            <span class="year">—</span>
-          </div>
-          <div class="panel"><div class="panel-inner">
-            <div class="frame"></div>
-            <div class="spec">
-              <dl>
-                <dt>Formaat</dt><dd class="fill">— täida —</dd>
-                <dt>Kestus</dt><dd class="fill">— täida —</dd>
-                <dt>Tööriistad</dt><dd class="fill">Blender / C4D / AE — täida</dd>
-                <dt>Link</dt><dd class="fill">vimeo.com/… — täida</dd>
-              </dl>
-              <p class="note">Pane siia oma koondreel. Ideaalis 60–90 s, tugevaim kaader esimese 5 sekundi sees.</p>
-            </div>
-          </div></div>
-        </div>
-
-        <div class="entry todo" data-open="false">
-          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
-            <span class="idx">— —</span>
-            <span>
-              <span class="title">Hiljutine operaatoritöö <span class="en">/ reklaam · muusikavideo</span></span>
-              <span class="roles">Lisata</span>
-            </span>
-            <span class="year">2020–26</span>
-          </div>
-          <div class="panel"><div class="panel-inner">
-            <div class="frame"></div>
-            <div class="spec">
-              <dl>
-                <dt>Klient</dt><dd class="fill">— täida —</dd>
-                <dt>Roll</dt><dd class="fill">DoP / operaator / 2. kaamera</dd>
-                <dt>Kaamera</dt><dd class="fill">— täida —</dd>
-                <dt>Objektiiv</dt><dd class="fill">— täida —</dd>
-              </dl>
-              <p class="note">2–4 tugevaimat viimaste aastate tööd, mida avalik andmebaas ei kata.</p>
-            </div>
-          </div></div>
-        </div>
-
-        <div class="entry todo" data-open="false">
-          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
-            <span class="idx">— —</span>
-            <span>
-              <span class="title">2D animatsioon / motion design <span class="en">/ selgitusvideo · tiitlid</span></span>
-              <span class="roles">Lisata</span>
-            </span>
-            <span class="year">—</span>
-          </div>
-          <div class="panel"><div class="panel-inner">
-            <div class="frame"></div>
-            <div class="spec">
-              <dl>
-                <dt>Tüüp</dt><dd class="fill">— täida —</dd>
-                <dt>Roll</dt><dd class="fill">Animaator / disainer</dd>
-                <dt>Tööriistad</dt><dd class="fill">After Effects / TVPaint — täida</dd>
-                <dt>Link</dt><dd class="fill">— täida —</dd>
-              </dl>
-              <p class="note">Näita 2D käekirja: frame-by-frame, rotoskoop või motion graphics.</p>
-            </div>
-          </div></div>
-        </div>
-
-        <div class="entry" data-open="false">
-          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
-            <span class="idx">05</span>
-            <span>
-              <span class="title">Putting Lipstick on a Pig</span>
-              <span class="roles">Monteerija · dokumentaalfilm</span>
-            </span>
-            <span class="year">2018</span>
-          </div>
-          <div class="panel"><div class="panel-inner">
-            <div class="frame"></div>
-            <div class="spec">
-              <dl>
-                <dt>Roll</dt><dd>Monteerija</dd>
-                <dt>Tüüp</dt><dd>Täispikk dokumentaalfilm</dd>
-                <dt>Aasta</dt><dd>2018</dd>
-                <dt>Allikas</dt><dd>IMDb — nm1848794</dd>
-                <dt>Formaat</dt><dd class="fill">— täida —</dd>
-                <dt>Kaamera</dt><dd class="fill">— täida —</dd>
-              </dl>
-              <p class="note">Kontrolli täpne eestikeelne pealkiri ja tootja üle; lisa kaader või treiler.</p>
-            </div>
-          </div></div>
-        </div>
-
-        <div class="entry" data-open="false">
-          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
-            <span class="idx">04</span>
-            <span>
-              <span class="title">Hundi süda sees</span>
-              <span class="roles">Operaator · dokumentaalfilm</span>
-            </span>
-            <span class="year">2015</span>
-          </div>
-          <div class="panel"><div class="panel-inner">
-            <div class="frame"></div>
-            <div class="spec">
-              <dl>
-                <dt>Roll</dt><dd>Operaator (üks operaatoritest)</dd>
-                <dt>Tüüp</dt><dd>Dokumentaalfilm</dd>
-                <dt>Aasta</dt><dd>2015</dd>
-                <dt>Allikas</dt><dd>EFIS — person/12420</dd>
-                <dt>Objektiiv</dt><dd class="fill">— täida —</dd>
-                <dt>FPS</dt><dd class="fill">— täida —</dd>
-              </dl>
-              <p class="note">Lisa oma võttepäevade kaadrid ja kaasoperaatorite nimed.</p>
-            </div>
-          </div></div>
-        </div>
-
-        <div class="entry" data-open="false">
-          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
-            <span class="idx">03</span>
-            <span>
-              <span class="title">Romeo, Julia ja Jüri</span>
-              <span class="roles">Operaator + monteerija · ETV · 28 min</span>
-            </span>
-            <span class="year">2010</span>
-          </div>
-          <div class="panel"><div class="panel-inner">
-            <div class="frame"></div>
-            <div class="spec">
-              <dl>
-                <dt>Roll</dt><dd>Operaator &amp; monteerija</dd>
-                <dt>Tüüp</dt><dd>TV-dokumentaal, 28 min (ETV)</dd>
-                <dt>Tootja</dt><dd>Revolver Film</dd>
-                <dt>Režii</dt><dd>Karin Reinberg / Liina Keevallik</dd>
-                <dt>Aasta</dt><dd>2010</dd>
-                <dt>Formaat</dt><dd class="fill">— täida —</dd>
-              </dl>
-              <p class="note">Kontrolli režissööride nimed lõpu­tiitritelt; lisa ERR arhiivi link kui olemas.</p>
-            </div>
-          </div></div>
-        </div>
-
-        <div class="entry" data-open="false">
-          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
-            <span class="idx">02</span>
-            <span>
-              <span class="title">Soovide puu <span class="en">/ The Wish Tree</span></span>
-              <span class="roles">Monteerimine / VFX · mängufilm</span>
-            </span>
-            <span class="year">2008</span>
-          </div>
-          <div class="panel"><div class="panel-inner">
-            <div class="frame"></div>
-            <div class="spec">
-              <dl>
-                <dt>Roll</dt><dd>Monteerimine / järeltootmine (kontrolli)</dd>
-                <dt>Tüüp</dt><dd>Täispikk mängufilm</dd>
-                <dt>Tootja</dt><dd>Revolver Film</dd>
-                <dt>Režii</dt><dd>Liina Paakspuu</dd>
-                <dt>Operaator</dt><dd>Mait Mäekivi</dd>
-                <dt>Aasta</dt><dd>2008</dd>
-              </dl>
-              <p class="note">Täpsusta oma täpne krediit (montaaž vs. VFX) lõputiitritelt.</p>
-            </div>
-          </div></div>
-        </div>
-
-        <div class="entry" data-open="false">
-          <div class="entry-row" role="button" tabindex="0" aria-expanded="false">
-            <span class="idx">01</span>
-            <span>
-              <span class="title">Malev</span>
-              <span class="roles">Monteerija · action-komöödia</span>
-            </span>
-            <span class="year">2005</span>
-          </div>
-          <div class="panel"><div class="panel-inner">
-            <div class="frame"></div>
-            <div class="spec">
-              <dl>
-                <dt>Roll</dt><dd>Monteerija (koos Tambet Tasujaga)</dd>
-                <dt>Tüüp</dt><dd>Täispikk mängufilm</dd>
-                <dt>Režii</dt><dd>Kaaren Kaer</dd>
-                <dt>Aasta</dt><dd>2005</dd>
-                <dt>Allikas</dt><dd>IMDb — tt0445554</dd>
-                <dt>Formaat</dt><dd class="fill">— täida —</dd>
-              </dl>
-              <p class="note">Esimene suurem linateos — hea ankurpunkt CV alguses.</p>
-            </div>
-          </div></div>
-        </div>
-
-      </div>
+      <div class="log" id="logList"></div>
     </div>
   </section>
 
   <section id="reel">
     <div class="wrap">
       <div class="sec-head"><h2>Reel</h2><span class="count">Embed lisada</span></div>
-      <div class="reel">
-        <div class="frame"></div>
-        <div>
-          <h3>Showreel<br>2026</h3>
-          <p>Asenda see kaader Vimeo või YouTube iframe'iga. Hoia fail all 1080p, autoplay + muted + loop, et leht ei jääks toppama.</p>
-          <a class="btn" href="#" aria-disabled="true">Lisa video link →</a>
-        </div>
-      </div>
+      <div class="reel" id="reelContainer"></div>
     </div>
   </section>
 
@@ -578,10 +366,7 @@
           </ul>
         </div>
       </div>
-      <p class="flag" style="margin-top:2.5rem">
-        <b>Täida.</b> Ülemine loend on üldine — kärbi ridadeni, mida sa tegelikult pakud, ja lisa
-        tarkvara (Blender, Cinema&nbsp;4D, After Effects, DaVinci Resolve, TVPaint…).
-      </p>
+      <p class="flag" id="capsFlag" style="margin-top:2.5rem" hidden></p>
     </div>
   </section>
 
@@ -605,10 +390,7 @@
           <span class="n">05</span><span class="l">Portree — Andres Keil (2015)</span><span class="u">behance.net/gallery/28766345</span>
         </a>
       </div>
-      <p class="flag" style="margin-top:2.5rem">
-        <b>Ei leidnud.</b> Avalikult ei ole indekseeritud showreeli, Vimeo/YouTube kontot ega
-        3D/2D animatsiooni näiteid. Kui sul on isiklik konto või varasem koduleht — saada link, panen sisse.
-      </p>
+      <p class="flag" id="indexFlag" style="margin-top:2.5rem" hidden></p>
     </div>
   </section>
 </main>
@@ -618,14 +400,12 @@
     <div class="foot-grid">
       <div>
         <div class="mono" style="margin-bottom:.6rem">Kontakt</div>
-        <div class="big">tere@[domeen].ee</div>
+        <a class="big mail" id="footEmailLink" href="#" style="text-decoration:none"></a>
         <div style="margin-top:.8rem" class="mono">
-          <a class="mail" href="#">+372 …</a> · Tallinn
+          <span id="footPhone"></span> · <span id="footLocation"></span>
         </div>
       </div>
-      <div class="mono" style="text-align:right;line-height:2">
-        Operaator<br>3D / 2D animaator<br>Videograaf
-      </div>
+      <div class="mono" style="text-align:right;line-height:2" id="footRoles"></div>
     </div>
     <div class="colophon">
       Mustand · kokku pandud <span id="today"></span> · andmed IMDb + EFIS avalikest kirjetest ·
@@ -653,20 +433,6 @@
   // ---- today stamp
   document.getElementById('today').textContent =
     new Date().toLocaleDateString('et-EE', { year: 'numeric', month: 'long', day: 'numeric' });
-
-  // ---- shot log expand
-  document.querySelectorAll('.entry').forEach(function (entry) {
-    var btn = entry.querySelector('.entry-row');
-    function toggle() {
-      var open = entry.getAttribute('data-open') === 'true';
-      entry.setAttribute('data-open', open ? 'false' : 'true');
-      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
-    }
-    btn.addEventListener('click', toggle);
-    btn.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-    });
-  });
 
   // ---- timecode (24 fps)
   (function () {
@@ -707,6 +473,201 @@
     size(); paint();
     addEventListener('resize', function () { size(); paint(); });
     if (!reduce) setInterval(paint, 90);
+  })();
+
+  // ---- content: fetch content/site.json (edited via /admin) and render
+  (function () {
+    function renderFlag(el, text) {
+      el.textContent = '';
+      if (!text) { el.hidden = true; return; }
+      el.hidden = false;
+      var m = /^\*\*(.+?)\*\*\s*([\s\S]*)$/.exec(text);
+      if (m) {
+        var b = document.createElement('b'); b.textContent = m[1];
+        el.appendChild(b);
+        el.appendChild(document.createTextNode(' ' + m[2]));
+      } else {
+        el.textContent = text;
+      }
+    }
+
+    function renderHero(settings) {
+      var parts = (settings.name || '').split(' ');
+      var first = parts.shift();
+      var rest = parts.join(' ');
+      var h1 = document.getElementById('heroName');
+      h1.innerHTML = '';
+      [first, rest].forEach(function (t) {
+        if (!t) return;
+        var line = document.createElement('span'); line.className = 'line';
+        var span = document.createElement('span'); span.textContent = t;
+        line.appendChild(span);
+        h1.appendChild(line);
+      });
+
+      var eyebrow = document.getElementById('eyebrow');
+      eyebrow.innerHTML = '';
+      (settings.roles || []).forEach(function (r) {
+        var s = document.createElement('span'); s.className = 'on'; s.textContent = r;
+        eyebrow.appendChild(s);
+      });
+      if (settings.location) {
+        var loc = document.createElement('span'); loc.textContent = settings.location;
+        eyebrow.appendChild(loc);
+      }
+
+      document.getElementById('heroStatement').textContent = settings.statement || '';
+    }
+
+    var FIELD_MAP = [
+      ['role', 'Roll'], ['type', 'Tüüp'], ['year', 'Aasta'], ['duration', 'Kestus'],
+      ['tools', 'Tööriistad'], ['producer', 'Tootja / klient'], ['director', 'Režii'],
+      ['cinematographer', 'Operaator'], ['source', 'Allikas'], ['format', 'Formaat'],
+      ['camera', 'Kaamera'], ['lens', 'Objektiiv'], ['fps', 'FPS'], ['link', 'Link']
+    ];
+
+    function fieldRows(work) {
+      var dl = document.createElement('dl');
+      FIELD_MAP.forEach(function (pair) {
+        var key = pair[0], label = pair[1];
+        if (!(key in work)) return;
+        var val = work[key];
+        var dt = document.createElement('dt'); dt.textContent = label;
+        var dd = document.createElement('dd');
+        if (!val) {
+          dd.textContent = '— täida —'; dd.className = 'fill';
+        } else if (key === 'link') {
+          var a = document.createElement('a'); a.href = val; a.target = '_blank'; a.rel = 'noopener';
+          a.textContent = val; dd.appendChild(a);
+        } else {
+          dd.textContent = val;
+        }
+        dl.appendChild(dt); dl.appendChild(dd);
+      });
+      return dl;
+    }
+
+    function buildEntry(work, idxLabel) {
+      var entry = document.createElement('div');
+      entry.className = 'entry' + (work.todo ? ' todo' : '');
+      entry.setAttribute('data-open', 'false');
+
+      var row = document.createElement('div');
+      row.className = 'entry-row'; row.setAttribute('role', 'button'); row.tabIndex = 0;
+      row.setAttribute('aria-expanded', 'false');
+
+      var idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = idxLabel;
+
+      var mid = document.createElement('span');
+      var title = document.createElement('span'); title.className = 'title';
+      title.appendChild(document.createTextNode(work.title || ''));
+      if (work.titleEn) {
+        var en = document.createElement('span'); en.className = 'en'; en.textContent = ' / ' + work.titleEn;
+        title.appendChild(en);
+      }
+      var roles = document.createElement('span'); roles.className = 'roles'; roles.textContent = work.roles || '';
+      mid.appendChild(title); mid.appendChild(roles);
+
+      var year = document.createElement('span'); year.className = 'year'; year.textContent = work.year || '';
+
+      row.appendChild(idx); row.appendChild(mid); row.appendChild(year);
+
+      var panel = document.createElement('div'); panel.className = 'panel';
+      var panelInner = document.createElement('div'); panelInner.className = 'panel-inner';
+      var frame = document.createElement('div'); frame.className = 'frame';
+      var spec = document.createElement('div'); spec.className = 'spec';
+      spec.appendChild(fieldRows(work));
+      if (work.note) {
+        var note = document.createElement('p'); note.className = 'note'; note.textContent = work.note;
+        spec.appendChild(note);
+      }
+      panelInner.appendChild(frame); panelInner.appendChild(spec);
+      panel.appendChild(panelInner);
+
+      entry.appendChild(row); entry.appendChild(panel);
+
+      function toggle() {
+        var open = entry.getAttribute('data-open') === 'true';
+        entry.setAttribute('data-open', open ? 'false' : 'true');
+        row.setAttribute('aria-expanded', open ? 'false' : 'true');
+      }
+      row.addEventListener('click', toggle);
+      row.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+      });
+
+      return entry;
+    }
+
+    function renderLog(works) {
+      var list = document.getElementById('logList');
+      list.innerHTML = '';
+      var realCount = works.filter(function (w) { return !w.todo; }).length;
+      var seen = 0;
+      works.forEach(function (w) {
+        var label = '— —';
+        if (!w.todo) { label = String(realCount - seen).padStart(2, '0'); seen++; }
+        list.appendChild(buildEntry(w, label));
+      });
+      document.getElementById('scrollcue').textContent = '↓ Keri — ' + works.length + ' logitud tööd';
+    }
+
+    function renderReel(reel) {
+      reel = reel || {};
+      var c = document.getElementById('reelContainer');
+      c.innerHTML = '';
+      var frame = document.createElement('div'); frame.className = 'frame';
+      if (reel.embedUrl) {
+        frame.classList.add('frame--live');
+        var iframe = document.createElement('iframe');
+        iframe.src = reel.embedUrl; iframe.title = reel.title || 'Showreel';
+        iframe.allow = 'autoplay; fullscreen; picture-in-picture';
+        iframe.loading = 'lazy';
+        iframe.style.cssText = 'width:100%;height:100%;border:0;display:block';
+        frame.appendChild(iframe);
+      }
+      var right = document.createElement('div');
+      var h3 = document.createElement('h3'); h3.textContent = reel.title || 'Showreel';
+      var p = document.createElement('p'); p.textContent = reel.note || '';
+      right.appendChild(h3); right.appendChild(p);
+      if (!reel.embedUrl) {
+        var btn = document.createElement('a'); btn.className = 'btn';
+        btn.href = '/admin/#/collections/site/entries/main'; btn.textContent = 'Lisa video link →';
+        right.appendChild(btn);
+      }
+      c.appendChild(frame); c.appendChild(right);
+    }
+
+    function renderFooter(settings) {
+      var link = document.getElementById('footEmailLink');
+      link.textContent = settings.contactEmail || '';
+      link.href = settings.contactEmail ? ('mailto:' + settings.contactEmail) : '#';
+      document.getElementById('footPhone').textContent = settings.contactPhone || '';
+      document.getElementById('footLocation').textContent = settings.location || '';
+      var roles = document.getElementById('footRoles');
+      roles.innerHTML = '';
+      (settings.roles || []).forEach(function (r, i) {
+        if (i > 0) roles.appendChild(document.createElement('br'));
+        roles.appendChild(document.createTextNode(r));
+      });
+    }
+
+    fetch('content/site.json', { cache: 'no-cache' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var settings = data.settings || {};
+        renderHero(settings);
+        renderLog(data.works || []);
+        renderReel(settings.reel);
+        renderFooter(settings);
+        var notices = settings.draftNotices || {};
+        renderFlag(document.getElementById('logFlag'), notices.log);
+        renderFlag(document.getElementById('capsFlag'), notices.caps);
+        renderFlag(document.getElementById('indexFlag'), notices.index);
+      })
+      .catch(function (err) {
+        console.error('Sisu (content/site.json) laadimine ebaõnnestus:', err);
+      });
   })();
 </script>
 </body>

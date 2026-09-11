@@ -1,0 +1,78 @@
+backend:
+  name: github
+  repo: jyrishestakov-design/sestakov-portfolio
+  branch: main
+  base_url: https://sestakov-cms-auth.artcontainer-cms.workers.dev
+  auth_endpoint: auth
+
+site_url: https://jyrishestakov-design.github.io/sestakov-portfolio/
+
+media_folder: "content/uploads"
+public_folder: "/content/uploads"
+
+collections:
+  - name: "site"
+    label: "Portfoolio"
+    editor:
+      preview: false
+    files:
+      - name: "main"
+        label: "Sisu"
+        file: "content/site.json"
+        fields:
+          - label: "Üldinfo"
+            name: "settings"
+            widget: "object"
+            fields:
+              - { label: "Nimi", name: "name", widget: "string" }
+              - label: "Rollid"
+                name: "roles"
+                widget: "list"
+                field: { label: "Roll", name: "role", widget: "string" }
+              - { label: "Asukoht", name: "location", widget: "string" }
+              - { label: "Avalause (hero all)", name: "statement", widget: "text" }
+              - { label: "Kontakt — e-post", name: "contactEmail", widget: "string" }
+              - { label: "Kontakt — telefon", name: "contactPhone", widget: "string", required: false }
+              - label: "Reel"
+                name: "reel"
+                widget: "object"
+                fields:
+                  - { label: "Pealkiri", name: "title", widget: "string" }
+                  - { label: "Märkus", name: "note", widget: "text" }
+                  - label: "Video embed URL"
+                    name: "embedUrl"
+                    widget: "string"
+                    required: false
+                    hint: "Vimeo/YouTube EMBED-link (nt https://player.vimeo.com/video/XXXXXXX või https://www.youtube.com/embed/XXXXXXXXXXX). Tühjaks jätmine näitab täitmata plaatsi."
+              - label: "Mustandi märkused"
+                name: "draftNotices"
+                widget: "object"
+                hint: "Kollane hoiatuskast iga sektsiooni all. Tühjaks jätmine peidab kasti."
+                fields:
+                  - { label: "Shot Log märkus", name: "log", widget: "text", required: false }
+                  - { label: "Oskuste märkus", name: "caps", widget: "text", required: false }
+                  - { label: "Index märkus", name: "index", widget: "text", required: false }
+          - label: "Tööd (Shot Log)"
+            name: "works"
+            widget: "list"
+            summary: "{{year}} — {{title}}"
+            fields:
+              - { label: "Täitmata koht (placeholder)", name: "todo", widget: "boolean", default: false }
+              - { label: "Pealkiri", name: "title", widget: "string" }
+              - { label: "Originaalpealkiri / EN (valikuline)", name: "titleEn", widget: "string", required: false }
+              - { label: "Rollid (rea all, väike tekst)", name: "roles", widget: "string" }
+              - { label: "Aasta", name: "year", widget: "string" }
+              - { label: "Roll", name: "role", widget: "string", required: false }
+              - { label: "Tüüp", name: "type", widget: "string", required: false }
+              - { label: "Kestus", name: "duration", widget: "string", required: false }
+              - { label: "Tööriistad", name: "tools", widget: "string", required: false }
+              - { label: "Tootja / klient", name: "producer", widget: "string", required: false }
+              - { label: "Režii", name: "director", widget: "string", required: false }
+              - { label: "Operaator", name: "cinematographer", widget: "string", required: false }
+              - { label: "Allikas", name: "source", widget: "string", required: false }
+              - { label: "Formaat", name: "format", widget: "string", required: false }
+              - { label: "Kaamera", name: "camera", widget: "string", required: false }
+              - { label: "Objektiiv", name: "lens", widget: "string", required: false }
+              - { label: "FPS", name: "fps", widget: "string", required: false }
+              - { label: "Link (Vimeo/YouTube/muu)", name: "link", widget: "string", required: false }
+              - { label: "Märkus (spec-lehe all)", name: "note", widget: "text", required: false }

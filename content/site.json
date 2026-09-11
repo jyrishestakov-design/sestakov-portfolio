@@ -1,0 +1,119 @@
+{
+  "settings": {
+    "name": "Jüri-Illimar Reinberg-Šestakov",
+    "roles": ["Operaator", "3D / 2D animatsioon", "Videograaf"],
+    "location": "Tallinn, EE",
+    "statement": "Kaamera taga ja kaadri sees — dokumentaalvõte, monteerimislaud ja kaader kaadri haaval ehitatud animatsioon ühe inimese käe all.",
+    "contactEmail": "tere@[domeen].ee",
+    "contactPhone": "+372 …",
+    "reel": {
+      "title": "Showreel 2026",
+      "note": "Asenda see kaader Vimeo või YouTube iframe'iga. Hoia fail all 1080p, autoplay + muted + loop, et leht ei jääks toppama.",
+      "embedUrl": ""
+    },
+    "draftNotices": {
+      "log": "**Mustand.** Allolev on kokku otsitud avalikest allikatest (IMDb, EFIS). Kolm ülemist rida on tühjad kohad — lisa oma showreel, hiljutine operaatoritöö ja animatsioonitööd. Iga rea \"tehniline leht\" (formaat / kaamera / objektiiv / fps) on täitmiseks.",
+      "caps": "**Täida.** Ülemine loend on üldine — kärbi ridadeni, mida sa tegelikult pakud, ja lisa tarkvara (Blender, Cinema 4D, After Effects, DaVinci Resolve, TVPaint…).",
+      "index": "**Ei leidnud.** Avalikult ei ole indekseeritud showreeli, Vimeo/YouTube kontot ega 3D/2D animatsiooni näiteid. Kui sul on isiklik konto või varasem koduleht — saada link, panen sisse."
+    }
+  },
+  "works": [
+    {
+      "todo": true,
+      "title": "Showreel 2026",
+      "titleEn": "3D + 2D",
+      "roles": "Lisata · Vimeo / YouTube embed",
+      "year": "—",
+      "format": "",
+      "duration": "",
+      "tools": "Blender / C4D / AE",
+      "link": "",
+      "note": "Pane siia oma koondreel. Ideaalis 60–90 s, tugevaim kaader esimese 5 sekundi sees."
+    },
+    {
+      "todo": true,
+      "title": "Hiljutine operaatoritöö",
+      "titleEn": "reklaam · muusikavideo",
+      "roles": "Lisata",
+      "year": "2020–26",
+      "producer": "",
+      "role": "DoP / operaator / 2. kaamera",
+      "camera": "",
+      "lens": "",
+      "note": "2–4 tugevaimat viimaste aastate tööd, mida avalik andmebaas ei kata."
+    },
+    {
+      "todo": true,
+      "title": "2D animatsioon / motion design",
+      "titleEn": "selgitusvideo · tiitlid",
+      "roles": "Lisata",
+      "year": "—",
+      "type": "",
+      "role": "Animaator / disainer",
+      "tools": "After Effects / TVPaint",
+      "link": "",
+      "note": "Näita 2D käekirja: frame-by-frame, rotoskoop või motion graphics."
+    },
+    {
+      "todo": false,
+      "title": "Putting Lipstick on a Pig",
+      "roles": "Monteerija · dokumentaalfilm",
+      "year": "2018",
+      "role": "Monteerija",
+      "type": "Täispikk dokumentaalfilm",
+      "source": "IMDb — nm1848794",
+      "format": "",
+      "camera": "",
+      "note": "Kontrolli täpne eestikeelne pealkiri ja tootja üle; lisa kaader või treiler."
+    },
+    {
+      "todo": false,
+      "title": "Hundi süda sees",
+      "roles": "Operaator · dokumentaalfilm",
+      "year": "2015",
+      "role": "Operaator (üks operaatoritest)",
+      "type": "Dokumentaalfilm",
+      "source": "EFIS — person/12420",
+      "lens": "",
+      "fps": "",
+      "note": "Lisa oma võttepäevade kaadrid ja kaasoperaatorite nimed."
+    },
+    {
+      "todo": false,
+      "title": "Romeo, Julia ja Jüri",
+      "roles": "Operaator + monteerija · ETV · 28 min",
+      "year": "2010",
+      "role": "Operaator & monteerija",
+      "type": "TV-dokumentaal, 28 min (ETV)",
+      "producer": "Revolver Film",
+      "director": "Karin Reinberg / Liina Keevallik",
+      "format": "",
+      "note": "Kontrolli režissööride nimed lõputiitritelt; lisa ERR arhiivi link kui olemas."
+    },
+    {
+      "todo": false,
+      "title": "Soovide puu",
+      "titleEn": "The Wish Tree",
+      "roles": "Monteerimine / VFX · mängufilm",
+      "year": "2008",
+      "role": "Monteerimine / järeltootmine (kontrolli)",
+      "type": "Täispikk mängufilm",
+      "producer": "Revolver Film",
+      "director": "Liina Paakspuu",
+      "cinematographer": "Mait Mäekivi",
+      "note": "Täpsusta oma täpne krediit (montaaž vs. VFX) lõputiitritelt."
+    },
+    {
+      "todo": false,
+      "title": "Malev",
+      "roles": "Monteerija · action-komöödia",
+      "year": "2005",
+      "role": "Monteerija (koos Tambet Tasujaga)",
+      "type": "Täispikk mängufilm",
+      "director": "Kaaren Kaer",
+      "source": "IMDb — tt0445554",
+      "format": "",
+      "note": "Esimene suurem linateos — hea ankurpunkt CV alguses."
+    }
+  ]
+}
