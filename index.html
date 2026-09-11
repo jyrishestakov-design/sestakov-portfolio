@@ -201,6 +201,7 @@
   }
   .frame.frame--live { background: var(--surface); }
   .frame.frame--live::after { content: none; }
+  .frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .spec a.btn { margin-top: .9rem; }
   .spec { font-family: var(--font-mono); font-size: .78rem; line-height: 1.9; align-self: start; }
   .spec dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0 1rem; }
@@ -575,6 +576,12 @@
       var panel = document.createElement('div'); panel.className = 'panel';
       var panelInner = document.createElement('div'); panelInner.className = 'panel-inner';
       var frame = document.createElement('div'); frame.className = 'frame';
+      if (work.image) {
+        frame.classList.add('frame--live');
+        var img = document.createElement('img'); img.src = work.image; img.alt = work.title || '';
+        img.loading = 'lazy';
+        frame.appendChild(img);
+      }
       var spec = document.createElement('div'); spec.className = 'spec';
       spec.appendChild(fieldRows(work));
       if (work.note) {
@@ -625,6 +632,10 @@
         iframe.loading = 'lazy';
         iframe.style.cssText = 'width:100%;height:100%;border:0;display:block';
         frame.appendChild(iframe);
+      } else if (reel.image) {
+        frame.classList.add('frame--live');
+        var reelImg = document.createElement('img'); reelImg.src = reel.image; reelImg.alt = reel.title || '';
+        frame.appendChild(reelImg);
       }
       var right = document.createElement('div');
       var h3 = document.createElement('h3'); h3.textContent = reel.title || 'Showreel';

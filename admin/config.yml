@@ -44,6 +44,11 @@ collections:
                     widget: "string"
                     required: false
                     hint: "Vimeo/YouTube EMBED-link (nt https://player.vimeo.com/video/XXXXXXX või https://www.youtube.com/embed/XXXXXXXXXXX). Tühjaks jätmine näitab täitmata plaatsi."
+                  - label: "Kaanepilt (kui video pole veel lisatud)"
+                    name: "image"
+                    widget: "image"
+                    required: false
+                    hint: "Kuvatakse ainult siis, kui Video embed URL on tühi."
               - label: "Mustandi märkused"
                 name: "draftNotices"
                 widget: "object"
@@ -58,6 +63,11 @@ collections:
             summary: "{{year}} — {{title}}"
             fields:
               - { label: "Täitmata koht (placeholder)", name: "todo", widget: "boolean", default: false }
+              - label: "Kaader (pilt, valikuline)"
+                name: "image"
+                widget: "image"
+                required: false
+                hint: "Tühjaks jätmine näitab värviriba test-kaadrit."
               - { label: "Pealkiri", name: "title", widget: "string" }
               - { label: "Originaalpealkiri / EN (valikuline)", name: "titleEn", widget: "string", required: false }
               - { label: "Rollid (rea all, väike tekst)", name: "roles", widget: "string" }
