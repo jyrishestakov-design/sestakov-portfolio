@@ -31,7 +31,13 @@ collections:
                 field: { label: "Roll", name: "role", widget: "string" }
               - { label: "Asukoht", name: "location", widget: "string" }
               - { label: "Avalause (hero all)", name: "statement", widget: "text" }
-              - { label: "Kontakt — e-post", name: "contactEmail", widget: "string" }
+              - label: "Kontakt — e-post"
+                name: "contactEmail"
+                widget: "object"
+                hint: "Kaheks tükeldatud (enne/pärast @), et boti otsing toorest failist e-posti ei leiaks. Lehel näidatakse neid siiski koos, tavalise mailto-lingina."
+                fields:
+                  - { label: "Enne @ (nt jyri.shestakov)", name: "user", widget: "string" }
+                  - { label: "Domeen (nt gmail.com)", name: "domain", widget: "string" }
               - { label: "Kontakt — telefon", name: "contactPhone", widget: "string", required: false }
               - label: "Reel"
                 name: "reel"

@@ -650,9 +650,15 @@
     }
 
     function renderFooter(settings) {
+      // Email is split into user/domain in content/site.json and only joined here at
+      // render time, so a bot that just greps the page source or the raw JSON file for
+      // an "@" pattern never finds one — a plain-text mailto link would be handed straight
+      // to every scraper that crawls the site.
       var link = document.getElementById('footEmailLink');
-      link.textContent = settings.contactEmail || '';
-      link.href = settings.contactEmail ? ('mailto:' + settings.contactEmail) : '#';
+      var em = settings.contactEmail;
+      var email = (em && em.user && em.domain) ? (em.user + '@' + em.domain) : '';
+      link.textContent = email;
+      link.href = email ? ('mailto:' + email) : '#';
       document.getElementById('footPhone').textContent = settings.contactPhone || '';
       document.getElementById('footLocation').textContent = settings.location || '';
       var roles = document.getElementById('footRoles');

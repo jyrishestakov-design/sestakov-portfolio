@@ -8,8 +8,8 @@
     ],
     "location": "Eesti, EE",
     "statement": "Kaamera taga ja kaadri sees — dokumentaalvõte, monteerimislaud ja kaader kaadri haaval ehitatud animatsioon ühe inimese käe all.",
-    "contactEmail": "jyri.shestakov@gmail.com",
-    "contactPhone": "+372 5010723",
+    "contactEmail": { "user": "jyri.shestakov", "domain": "gmail.com" },
+    "contactPhone": "+372 …",
     "reel": {
       "title": "Showreel 2026",
       "note": "Asenda see kaader Vimeo või YouTube iframe'iga. Hoia fail all 1080p, autoplay + muted + loop, et leht ei jääks toppama.",
