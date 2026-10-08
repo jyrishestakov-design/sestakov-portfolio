@@ -265,6 +265,20 @@
   }
   .flag b { color: var(--accent); }
 
+  /* ============ VIKING RIDER (minimäng menüüriba all) ============ */
+  .game-strip {
+    padding: 0; border-top: 0; border-bottom: 1px solid var(--line-soft);
+    background: #0C0D11;               /* alati öö — ka päevase teema korral */
+    position: relative; z-index: 2;
+  }
+  #viking-runner {
+    width: 100%; height: 220px; position: relative;
+    user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+    touch-action: none; cursor: pointer;
+  }
+  #viking-runner:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
+  @media (max-width: 720px) { #viking-runner { height: 170px; } }
+
   img { max-width: 100%; }
   [hidden] { display: none !important; }
 </style>
@@ -291,6 +305,10 @@
 </header>
 
 <main>
+  <section class="game-strip" id="ride" aria-label="Minimäng: Viking Rider">
+    <div id="viking-runner"></div>
+  </section>
+
   <section class="hero" id="top" style="border-top:0">
     <div class="wrap">
       <div class="viewfinder">
@@ -681,6 +699,657 @@
         console.error('Sisu (content/site.json) laadimine ebaõnnestus:', err);
       });
   })();
+</script>
+
+<!-- ============ VIKING RIDER — minimäng (öine viikingi-chopper) ============ -->
+<script>
+(function () {
+  const mount = document.getElementById('viking-runner');
+  if (!mount) return;
+
+  // ---------- seaded ----------
+  const TOUCH = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+  const TXT_START = TOUCH ? 'PUUDUTA — MÄNGI' : 'TÜHIK — MÄNGI';
+  const TXT_HELP  = TOUCH ? 'ülal: hüpe · all (hoia): kummarda · paremal: mõõk'
+                          : 'tühik / ↑ hüpe · ↓ kummarda · X mõõk · ← → kiirus';
+  const TXT_OVER  = 'G A M E   O V E R';
+  const TXT_AGAIN = TOUCH ? 'uuesti: puuduta' : 'uuesti: tühik';
+  const IDLE_TO_DEMO = 12000;        // ms pärast kaotust tagasi "screensaveri" režiimi
+  const LOGICAL_H = 104, GROUND = 94;
+  const SPEED_START = 2.0, SPEED_MAX = 5.6, SPEED_ACC = 0.0007;   // automaatne kiirenemine
+  const SPEED_MIN = 1.2, SPEED_TOP = 8.5, THROTTLE = 0.05;           // ← → reguleerimine
+  const KMH = 16;                    // kiirus → km/h näidikul
+  const GRAVITY = 0.36, JUMP_V = -6.3;
+  const AMBIENT = 0.2;               // kui palju pimedas näha on (0–1)
+  const BEAM_LEN = 250, BEAM_SPREAD = 0.22, BEAM_TILT = 0.07;
+  const PIG_CHANCE = 0.3;            // lendavate sigade osakaal
+  const SWORD_CD = 70;               // mõõga laadimisaeg (kaadrites, ~60 = 1 s)
+  const SWORD_REACH = 26;            // kui kaugele ette mõõk ulatub
+  const KILL_BONUS = 10;
+
+  const PAL = { t:'#2c2c33', h:'#c4c8d2', g:'#7a7c86', m:'#3a3a44', p:'#962826', n:'#dc6e32',
+                y:'#ffe9a0', j:'#46506e', b:'#6e482c', f:'#bea078', s:'#e0b48c', e:'#111114',
+                v:'#a0a2ac', r:'#c84236', w:'#efe3c0', o:'#c87030',
+                k:'#8a8a94', d:'#3e3e46', q:'#d6d6d6', P:'#e899a6', D:'#b86476', W:'#f4f4f4' };
+
+  // ---------- sprite'id ----------
+  const RIDER = {
+    ride0: [
+      "........w............w............................",
+      ".........w...vvvv...w.............................",
+      ".........w..vvvvvv..w.............................",
+      "..........wvvvwvvvvw..............................",
+      "...........vvvvvvvv...............................",
+      "...........rrrrrrrr...............................",
+      "..........oossssss..........bbssh.................",
+      "........oooosssses.......bbb.bb.h.................",
+      "......oooo.osssssss..bbbbbbbb...h.................",
+      "....hhhoooofsooooobbb.bb........h.................",
+      "....hoohoofffooooobbbb..........hh................",
+      "....h..o..ffbooooo...............h................",
+      "....h..h..ffbbooo................h................",
+      "....h......ffbbbbb...............hh...............",
+      "....h......ffbbbbb................hh..............",
+      "....h......ffbbbbb...............mhhhhy...........",
+      "....h......ffbbbbb....pppppppppmm.hhhhy...........",
+      "....h.......ffbbbbb.ppppppnnnnpp..mhhhy...........",
+      "....h.......ffbbbbb.jjjjjjjppppp.m..hh............",
+      "....h.ppppppbbbbbbbjjjjjjjjjpppp.m..hh............",
+      "....hppppmmmmmmjjjjjjpppppjjpppp.m..hhh...........",
+      "...ppp.tmmmmmmmmmmmm.ppppppjjj..m.....hhtttt......",
+      "..pp.ttttttttt.pp......hhhh.j.j.m....thhtttttt....",
+      ".ppptttttttttttppp....gggggg.jmmmm..tthhhhhhttt...",
+      ".pptttthhghhttttp...hhhhhhhhhhmmmm.ttthhhg..httt..",
+      ".p.ttthh.g.hhttt...ggggggggggg.ggg.tthg.hh..ghtt..",
+      "..ttthhg.g.ghhttt..hhhhhhhhhhh.m..tth..ghh.g..htt.",
+      "..ttth..ggg..httt..ggggggggggg.m..tth...hgh...htt.",
+      "..ttthgggmmmmhttt..hhgggggggghm...ttggggghgggggtt.",
+      "..ttth..gghhhhhhhhhhhgggggggggm...tth...ggg...htt.",
+      "hhhhhhhhhhhghhtttmmmmggggggggmm...tth..g.g.g..htt.",
+      "g..ttthh.g.hhhhhhhhhhhh............tthg..g..ghtt..",
+      ".hhhhhhhhhhhhttt...................ttth..g..httt..",
+      ".g..ttttttttttt.....................ttthhhhhttt...",
+      ".....ttttttttt.......................ttttttttt....",
+      ".......ttttt...........................ttttt......"],
+    ride1: [
+      "........w............w............................",
+      ".........w...vvvv...w.............................",
+      ".........w..vvvvvv..w.............................",
+      "..........wvvvwvvvvw..............................",
+      "...........vvvvvvvv...............................",
+      "...........rrrrrrrr...............................",
+      "..........oossssss..........bbssh.................",
+      "........oooosssses.......bbb.bb.h.................",
+      "......oooo.osssssss..bbbbbbbb...h.................",
+      "....hhhoooofsooooobbb.bb........h.................",
+      "....hoohoofffooooobbbb..........hh................",
+      "....h..o..ffbooooo...............h................",
+      "....h..h..ffbbooo................h................",
+      "....h......ffbbbbb...............hh...............",
+      "....h......ffbbbbb................hh..............",
+      "....h......ffbbbbb...............mhhhhy...........",
+      "....h......ffbbbbb....pppppppppmm.hhhhy...........",
+      "....h.......ffbbbbb.ppppppnnnnpp..mhhhy...........",
+      "....h.......ffbbbbb.jjjjjjjppppp.m..hh............",
+      "....h.ppppppbbbbbbbjjjjjjjjjpppp.m..hh............",
+      "....hppppmmmmmmjjjjjjpppppjjpppp.m..hhh...........",
+      "...ppp.tmmmmmmmmmmmm.ppppppjjj..m.....hhtttt......",
+      "..pp.ttttttttt.pp......hhhh.j.j.m....thhtttttt....",
+      ".ppptttttttttttppp....gggggg.jmmmm..tthhhhhhttt...",
+      ".pptttthhhhhttttp...hhhhhhhhhhmmmm.ttthhh..ghttt..",
+      ".p.ttthhg.ghhttt...ggggggggggg.ggg.tth..hhg..htt..",
+      "..ttthh.g.g.hhttt..hhhhhhhhhhh.m..tthg..hhg..ghtt.",
+      "..ttthgg.g.gghttt..ggggggggggg.m..tth.gghghgg.htt.",
+      "..ttth..gmmmmhttt..hhgggggggghm...tth...ghg...htt.",
+      "..ttthgg.ghhhhhhhhhhhgggggggggm...tth.gg.g.gg.htt.",
+      "hhhhhhhhhhh.hhtttmmmmggggggggmm...tthg..g.g..ghtt.",
+      "g..ttthhg.ghhhhhhhhhhhh............tth..g.g..htt..",
+      ".hhhhhhhhhhhhttt...................ttthg...ghttt..",
+      ".g..ttttttttttt.....................ttthhhhhttt...",
+      ".....ttttttttt.......................ttttttttt....",
+      ".......ttttt...........................ttttt......"],
+    duck0: [
+      "..................................................",
+      "..................................................",
+      "..................................................",
+      "..................................................",
+      "..................................................",
+      "..................................................",
+      "..............................ssh.................",
+      "..............................b.h.................",
+      "......................w......b..hw................",
+      "....hhhh..............w..vvvvvv.hw................",
+      "....h..h...............wvvvvvvvvwh................",
+      "....h..h................vvvvvvvv.h................",
+      "....h..h................rrrrrrrr.h................",
+      "....h.................boossssss..hh...............",
+      "....h..............oooooosssses...hh..............",
+      "....h...........boobboobbssssss..mhhhhy...........",
+      "....h........bbbbbbboobbbpooooomm.hhhhy...........",
+      "....h.....fffffbbboobbppppooooop..mhhhy...........",
+      "....h.....fffffbbbb.ppnnnnnppppp.m..hh............",
+      "....h.ppppfffffbjjjjjjjjjjjppppp.m..hh............",
+      "....hppppmbbbmmjjjjjjjjjjjjjpppp.m..hhh...........",
+      "...ppp.tmmmmmmmmmmmm.pppppjjjp..m.....hhtttt......",
+      "..pp.ttttttttt.pp......hhhh.jj..m....thhtttttt....",
+      ".ppptttttttttttppp....ggggggjjmmmm..tthhhhhhttt...",
+      ".pptttthhghhttttp...hhhhhhhhhhmmmm.ttthhhg..httt..",
+      ".p.ttthh.g.hhttt...ggggggggggg.ggg.tthg.hh..ghtt..",
+      "..ttthhg.g.ghhttt..hhhhhhhhhhh.m..tth..ghh.g..htt.",
+      "..ttth..ggg..httt..ggggggggggg.m..tth...hgh...htt.",
+      "..ttthgggmmmmhttt..hhgggggggghm...ttggggghgggggtt.",
+      "..ttth..gghhhhhhhhhhhgggggggggm...tth...ggg...htt.",
+      "hhhhhhhhhhhghhtttmmmmggggggggmm...tth..g.g.g..htt.",
+      "g..ttthh.g.hhhhhhhhhhhh............tthg..g..ghtt..",
+      ".hhhhhhhhhhhhttt...................ttth..g..httt..",
+      ".g..ttttttttttt.....................ttthhhhhttt...",
+      ".....ttttttttt.......................ttttttttt....",
+      ".......ttttt...........................ttttt......"],
+    duck1: [
+      "..................................................",
+      "..................................................",
+      "..................................................",
+      "..................................................",
+      "..................................................",
+      "..................................................",
+      "..............................ssh.................",
+      "..............................b.h.................",
+      "......................w......b..hw................",
+      "....hhhh..............w..vvvvvv.hw................",
+      "....h..h...............wvvvvvvvvwh................",
+      "....h..h................vvvvvvvv.h................",
+      "....h..h................rrrrrrrr.h................",
+      "....h.................boossssss..hh...............",
+      "....h..............oooooosssses...hh..............",
+      "....h...........boobboobbssssss..mhhhhy...........",
+      "....h........bbbbbbboobbbpooooomm.hhhhy...........",
+      "....h.....fffffbbboobbppppooooop..mhhhy...........",
+      "....h.....fffffbbbb.ppnnnnnppppp.m..hh............",
+      "....h.ppppfffffbjjjjjjjjjjjppppp.m..hh............",
+      "....hppppmbbbmmjjjjjjjjjjjjjpppp.m..hhh...........",
+      "...ppp.tmmmmmmmmmmmm.pppppjjjp..m.....hhtttt......",
+      "..pp.ttttttttt.pp......hhhh.jj..m....thhtttttt....",
+      ".ppptttttttttttppp....ggggggjjmmmm..tthhhhhhttt...",
+      ".pptttthhhhhttttp...hhhhhhhhhhmmmm.ttthhh..ghttt..",
+      ".p.ttthhg.ghhttt...ggggggggggg.ggg.tth..hhg..htt..",
+      "..ttthh.g.g.hhttt..hhhhhhhhhhh.m..tthg..hhg..ghtt.",
+      "..ttthgg.g.gghttt..ggggggggggg.m..tth.gghghgg.htt.",
+      "..ttth..gmmmmhttt..hhgggggggghm...tth...ghg...htt.",
+      "..ttthgg.ghhhhhhhhhhhgggggggggm...tth.gg.g.gg.htt.",
+      "hhhhhhhhhhh.hhtttmmmmggggggggmm...tthg..g.g..ghtt.",
+      "g..ttthhg.ghhhhhhhhhhhh............tth..g.g..htt..",
+      ".hhhhhhhhhhhhttt...................ttthg...ghttt..",
+      ".g..ttttttttttt.....................ttthhhhhttt...",
+      ".....ttttttttt.......................ttttttttt....",
+      ".......ttttt...........................ttttt......"]
+  };
+  const STONE = [
+    "...ggg...",".ggggggg.",".ggdgggg.","gggddgggg","gggdgdggg","gggdggggg",
+    "ggggggdgg","gggggddgg","ggggdgdgg","ggggggdgg","gdggggggg","gddgggggg",
+    "gdgdggggg","gdggggggg","ggggggggg"];
+  const ROCK = [
+    "....gggg....","..gggggggg..",".ggggggdggg.","ggggggggggdg","gggdgggggggg","gggggggggggg"];
+  const SHEEP = [
+    "..qqqqqqq....",".qqqqqqqqqkk.","qqqqqqqqqqkek","qqqqqqqqqqkk.",".qqqqqqqqq...",
+    "..k.k..k.k...","..k.k..k.k..."];
+  const PIG = [[
+    ".......WW......","......WWW......","..PPPPWWPPP....",".PePPPPPPPPP.P.","DDPPPPPPPPPPPP.",
+    "DDPPPPPPPPPPP..",".PPPPPPPPPPP...","..P.P....P.P...","..D.D....D.D..."],[
+    "...............","...............","..PPPPPPPPP....",".PePPPWWPPPP.P.","DDPPPWWWPPPPPP.",
+    "DDPPPWWPPPPPP..",".PPPPPPPPPPP...","..P.P....P.P...","..D.D....D.D..."]];
+  const CLOUD = [
+    "......kkkk.......","....kk....kk.....","..kkk.......k....",".k...........kkk.","k...............k","kkkkkkkkkkkkkkkkk"];
+  const CLOUD_S = [
+    "...kkk.....",".kk...kk...","k.......kkk","kkkkkkkkkkk"];
+  const CLOUD_L = [
+    "...........kkkkk..........","........kkk.....kk........","......kk...........k......",
+    "..kkkk..............kkk...",".k.....................kk.","k........................k",
+    "k........................k","kkkkkkkkkkkkkkkkkkkkkkkkkk"];
+  // parallaks-kihid: kaugem = väiksem, aeglasem, tuhmim
+  const CLOUD_LAYERS = [
+    { spr: 'cloudS', speed: 0.04, alpha: 0.10, yMin: 4,  yMax: 26, per: 55 },
+    { spr: 'cloud',  speed: 0.10, alpha: 0.17, yMin: 10, yMax: 36, per: 85 },
+    { spr: 'cloudL', speed: 0.22, alpha: 0.26, yMin: 18, yMax: 46, per: 150 }];
+  const MOON = [
+    "...yyyy...","..yyyyy...",".yyyyy....","yyyyy.....","yyyyy.....",
+    "yyyyy.....","yyyyy.....",".yyyyy....","..yyyyy...","...yyyy..."];
+
+  function bmp(rows) {
+    const c = document.createElement('canvas');
+    c.width = rows[0].length; c.height = rows.length;
+    const x = c.getContext('2d');
+    rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') { x.fillStyle = PAL[r[i]]; x.fillRect(i, j, 1, 1); } });
+    return c;
+  }
+  const B = {
+    ride: [bmp(RIDER.ride0), bmp(RIDER.ride1)],
+    duck: [bmp(RIDER.duck0), bmp(RIDER.duck1)],
+    stone: bmp(STONE), rock: bmp(ROCK), sheep: bmp(SHEEP),
+    pig: [bmp(PIG[0]), bmp(PIG[1])],
+    cloud: bmp(CLOUD), cloudS: bmp(CLOUD_S), cloudL: bmp(CLOUD_L), moon: bmp(MOON)
+  };
+  const BW = 50, BH = 36;               // ratturi sprite'i mõõdud
+  const PIVOT_X = 9, PIVOT_Y = 28;      // tagaratta kese (wheelie pöördepunkt)
+  const LAMP_X = 38, LAMP_Y = 16;       // esituli
+  const SHOULDER = { ride: [16, 10], duck: [24, 14] };
+  const CHIPS = { stone: ['#7c7c86', '#3e3e46'], rock: ['#7c7c86', '#3e3e46'],
+                  sheep: ['#d6d6d6', '#8a8a94'], pig: ['#e899a6', '#b86476', '#f4f4f4'] };
+
+  // ---------- canvas'id ----------
+  const cv = document.createElement('canvas');
+  cv.style.cssText = 'width:100%;height:100%;display:block';
+  cv.setAttribute('aria-label', 'Viking Rider: tühik hüppab, nool alla kummardab, X lööb mõõgaga');
+  mount.appendChild(cv);
+  const ctx = cv.getContext('2d');
+  const lit = document.createElement('canvas'), lctx = lit.getContext('2d');
+  const msk = document.createElement('canvas'), mctx = msk.getContext('2d');
+  let scale = 2, LW = 300, dpr = 1, stars = [];
+
+  function resize() {
+    const r = mount.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1;
+    scale = r.height / LOGICAL_H;
+    LW = r.width / scale;
+    for (const c of [cv, lit, msk]) { c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr); }
+    stars = [];
+    for (let i = 0; i < LW / 7; i++) stars.push({ x: Math.random() * LW, y: Math.random() * (GROUND - 40), p: Math.random() * 6.28, b: Math.random() < 0.15 });
+  }
+  new ResizeObserver(resize).observe(mount);
+  resize();
+
+  function prep(c) {
+    c.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+    c.imageSmoothingEnabled = false;
+  }
+
+  // ---------- olek ----------
+  let mode = 'demo';                 // 'demo' (screensaver) | 'play' | 'over'
+  let hi = 0;
+  try { hi = +localStorage.getItem('vikingRiderHi') || 0; } catch (e) {}
+  let score, speed, obstacles, clouds, pebbles, bike, nextGap, frame, overAt, spawned;
+  let sword, chips, floats, boost, wheelPhase;
+  let keyFwd = false, keyBack = false;
+  let wantDuck = false, autoDuck = false;
+
+  function reset() {
+    score = 0; speed = SPEED_START; obstacles = []; frame = 0; spawned = 0;
+    bike = { x: 14, y: GROUND - BH, vy: 0, onGround: true, ang: 0, duck: false };
+    sword = { t: -1, cd: 0 };
+    chips = []; floats = []; boost = 0; wheelPhase = 0;
+    nextGap = 90;
+    clouds = [];
+    CLOUD_LAYERS.forEach((L, li) => {
+      const n = Math.max(2, Math.round(LW / L.per));
+      for (let i = 0; i < n; i++) clouds.push({ L: li, x: (i + Math.random() * 0.8) * (LW + 40) / n, y: L.yMin + Math.random() * (L.yMax - L.yMin) });
+    });
+    pebbles = [];
+    for (let x = 0; x < LW + 40; x += 6 + Math.random() * 14)
+      pebbles.push({ x, y: GROUND + 2 + Math.floor(Math.random() * 7), w: 1 + (Math.random() * 3 | 0) });
+  }
+  reset();
+
+  function jump() {
+    if (bike.onGround && !bike.duck) { bike.vy = JUMP_V; bike.onGround = false; }
+  }
+  function swing() {
+    if (sword.cd > 0 || sword.t >= 0) return;
+    sword.t = 0; sword.cd = SWORD_CD;
+  }
+
+  function spawn() {
+    const r = Math.random();
+    let o;
+    if (r < PIG_CHANCE || spawned === 1) {
+      o = { kind: 'pig', w: 15, h: 9, y: GROUND - BH - 1 + (Math.random() * 3 | 0), flap: Math.random() * 20, bob: 0 };
+    } else if (r < 0.55) o = { kind: 'stone', img: B.stone, w: 9, h: 15 };
+    else if (r < 0.75)  o = { kind: 'sheep', img: B.sheep, w: 13, h: 7 };
+    else {
+      const n = 1 + (Math.random() * (spawned > 8 ? 3 : 2) | 0);
+      o = { kind: 'rock', w: 12 * n, h: 6, n };
+    }
+    if (o.kind !== 'pig') o.y = GROUND - o.h;
+    o.x = LW + 10;
+    o.plan = Math.random() < 0.4 ? 'sword' : 'dodge';    // autopiloodi jaoks
+    obstacles.push(o); spawned++;
+    nextGap = (90 + Math.random() * 110) * (speed / SPEED_START) * 0.8 + 50;
+  }
+
+  function hitbox() {
+    if (bike.duck) return [bike.x + 5, bike.y + 12, 38, 22];
+    return [bike.x + 5, bike.y + 4, 38, 30];        // sarved ja juhtraud on "tasuta"
+  }
+  function overlaps(o, bx, by, bw, bh) {
+    const ox = o.x + 1, oy = o.y + (o.bob || 0) + 1, ow = o.w - 2, oh = o.h - 1;
+    return bx < ox + ow && bx + bw > ox && by < oy + oh && by + bh > oy;
+  }
+
+  function smash(o) {
+    const cols = CHIPS[o.kind];
+    for (let i = 0; i < 22; i++) chips.push({
+      x: o.x + Math.random() * o.w, y: o.y + (o.bob || 0) + Math.random() * o.h,
+      vx: 1 + Math.random() * 3, vy: -1.5 - Math.random() * 3, life: 40 + Math.random() * 25,
+      c: cols[i % cols.length] });
+    floats.push({ x: o.x + o.w / 2, y: o.y - 4, t: 0, s: o.kind === 'pig' ? 'OINK! +' + KILL_BONUS : '+' + KILL_BONUS });
+    if (mode === 'play') score += KILL_BONUS;
+  }
+
+  function autopilot() {
+    autoDuck = false;
+    for (const o of obstacles) {
+      const dist = o.x - (bike.x + 44);
+      if (o.x + o.w < bike.x) continue;
+      if (o.plan === 'sword' && dist < SWORD_REACH - 6 && dist > -10 && sword.cd <= 0) { swing(); continue; }
+      if (o.plan === 'sword' && sword.cd <= 0 && dist > 0) continue;   // ootab löögiulatust
+      if (o.kind === 'pig') { if (dist < speed * 12) autoDuck = true; continue; }
+      if (dist >= 0 && dist < speed * 9) { jump(); break; }
+    }
+  }
+
+  function update(dt) {
+    frame += dt;
+    for (const c of chips) { c.x += c.vx * dt - speed * 0.3 * dt; c.y += c.vy * dt; c.vy += 0.25 * dt; c.life -= dt; if (c.y > GROUND + 6) { c.y = GROUND + 6; c.vy *= -0.3; } }
+    chips = chips.filter(c => c.life > 0);
+    for (const f of floats) { f.t += dt; f.y -= 0.35 * dt; }
+    floats = floats.filter(f => f.t < 50);
+    if (mode === 'over') return;
+
+    // ← → muudab kiirust; automaatne kiirenemine jätkub taustal
+    const base = Math.min(SPEED_MAX, (speed - boost) + SPEED_ACC * dt);
+    if (mode === 'play') {
+      if (keyFwd)  boost += THROTTLE * dt;
+      if (keyBack) boost -= THROTTLE * dt;
+    }
+    boost = Math.max(SPEED_MIN - base, Math.min(SPEED_TOP - base, boost));
+    speed = base + boost;
+    wheelPhase += speed * 0.13 * dt;
+    if (mode === 'play') score += speed * 0.05 * dt;
+    else autopilot();
+
+    const duckInput = mode === 'demo' ? autoDuck : wantDuck;
+    bike.duck = duckInput && bike.onGround;
+
+    // füüsika (↓ õhus = kiirem maandumine)
+    bike.vy += (GRAVITY + (duckInput && !bike.onGround ? 0.5 : 0)) * dt;
+    bike.y += bike.vy * dt;
+    const floor = GROUND - BH;
+    if (bike.y >= floor) {
+      if (!bike.onGround) bike.ang = 0.05;
+      bike.y = floor; bike.vy = 0; bike.onGround = true;
+    }
+
+    // wheelie: esiratas tõuseb hüppel, langedes tuleb aeglaselt alla
+    let target = mode === 'play' && keyFwd && bike.onGround ? -0.05 : 0;
+    if (!bike.onGround) target = bike.vy < 0 ? -0.38 : Math.min(0, -0.38 + bike.vy * 0.08);
+    bike.ang += (target - bike.ang) * Math.min(1, 0.22 * dt);
+
+    // mõõk
+    if (sword.cd > 0) sword.cd -= dt;
+    if (sword.t >= 0) {
+      sword.t += dt;
+      if (sword.t >= 4 && sword.t <= 16) {
+        const x0 = bike.x + 30, x1 = bike.x + 44 + SWORD_REACH;
+        obstacles = obstacles.filter(o => {
+          if (o.x < x1 && o.x + o.w > x0 && o.y + o.h > bike.y - 14) { smash(o); return false; }
+          return true;
+        });
+      }
+      if (sword.t > 26) sword.t = -1;
+    }
+
+    // takistused
+    nextGap -= speed * dt;
+    if (nextGap <= 0) spawn();
+    for (const o of obstacles) {
+      o.x -= (o.kind === 'pig' ? speed * 1.25 : speed) * dt;
+      if (o.kind === 'pig') { o.flap += dt; o.bob = Math.sin(o.flap / 7) * 1.5; }
+    }
+    obstacles = obstacles.filter(o => o.x + o.w > -10);
+
+    for (const c of clouds) {
+      const L = CLOUD_LAYERS[c.L];
+      c.x -= speed * L.speed * dt;
+      if (c.x < -30) { c.x = LW + 10 + Math.random() * 60; c.y = L.yMin + Math.random() * (L.yMax - L.yMin); }
+    }
+    for (const p of pebbles) { p.x -= speed * dt; if (p.x < -4) { p.x += LW + 44; p.y = GROUND + 2 + Math.floor(Math.random() * 7); } }
+
+    if (mode === 'play') {
+      const [bx, by, bw, bh] = hitbox();
+      for (const o of obstacles) if (overlaps(o, bx, by, bw, bh)) {
+        mode = 'over'; overAt = performance.now(); wantDuck = false; keyFwd = keyBack = false;
+        const s = Math.floor(score);
+        if (s > hi) { hi = s; try { localStorage.setItem('vikingRiderHi', hi); } catch (e) {} }
+        break;
+      }
+    }
+  }
+
+  // ---------- joonistamine ----------
+  function toWorld(sx, sy) {
+    const dx = sx - PIVOT_X, dy = sy - PIVOT_Y, c = Math.cos(bike.ang), s = Math.sin(bike.ang);
+    return [bike.x + PIVOT_X + dx * c - dy * s, bike.y + PIVOT_Y + dx * s + dy * c];
+  }
+  function beamPath(c, lx, ly) {
+    const a = bike.ang + BEAM_TILT;
+    c.beginPath();
+    c.moveTo(lx, ly);
+    c.lineTo(lx + Math.cos(a - BEAM_SPREAD) * BEAM_LEN, ly + Math.sin(a - BEAM_SPREAD) * BEAM_LEN);
+    c.lineTo(lx + Math.cos(a + BEAM_SPREAD) * BEAM_LEN, ly + Math.sin(a + BEAM_SPREAD) * BEAM_LEN);
+    c.closePath();
+  }
+  const pad = n => String(Math.floor(n)).padStart(5, '0');
+  const ease = t => 1 - Math.pow(1 - t, 3);
+
+  function drawSword(c, sx, sy, ang, alpha, thick) {
+    // tera pikslitena piki suunda
+    const cs = Math.cos(ang), sn = Math.sin(ang);
+    c.globalAlpha = alpha;
+    c.fillStyle = '#8a6a3a';                                    // käepide
+    for (let i = 0; i < 3; i++) c.fillRect(Math.round(sx + cs * i), Math.round(sy + sn * i), 1, 1);
+    c.fillStyle = '#d4a84a';                                    // ristpuu
+    for (let i = -2; i <= 2; i++) c.fillRect(Math.round(sx + cs * 3 - sn * i), Math.round(sy + sn * 3 + cs * i), 1, 1);
+    c.fillStyle = '#e4e8f0';                                    // tera
+    for (let i = 4; i < 20; i++) {
+      c.fillRect(Math.round(sx + cs * i), Math.round(sy + sn * i), 1, 1);
+      if (thick && i < 18) c.fillRect(Math.round(sx + cs * i - sn), Math.round(sy + sn * i + cs), 1, 1);
+    }
+    c.globalAlpha = 1;
+  }
+
+  function draw(now) {
+    const W = cv.width, H = cv.height;
+
+    // 1) valgustatav maailm eraldi kihile
+    lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, W, H); prep(lctx);
+    lctx.fillStyle = PAL.k;
+    lctx.fillRect(0, GROUND, LW, 1);
+    for (const p of pebbles) lctx.fillRect(Math.round(p.x), p.y, p.w, 1);
+    for (const o of obstacles) {
+      const x = Math.round(o.x);
+      if (o.kind === 'pig') lctx.drawImage(B.pig[(o.flap / 8 | 0) % 2], x, Math.round(o.y + o.bob));
+      else if (o.kind === 'rock') for (let i = 0; i < o.n; i++) lctx.drawImage(B.rock, x + i * 12, o.y);
+      else lctx.drawImage(o.img, x, o.y);
+    }
+
+    // 2) taevas
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); prep(ctx);
+    for (const s of stars) {
+      ctx.globalAlpha = 0.35 + 0.35 * Math.sin(now / 700 + s.p);
+      ctx.fillStyle = '#cfd3e0';
+      ctx.fillRect(Math.round(s.x), Math.round(s.y), s.b ? 2 : 1, 1);
+    }
+    ctx.globalAlpha = 0.9; ctx.drawImage(B.moon, Math.round(LW * 0.78), 6);
+    for (let li = 0; li < CLOUD_LAYERS.length; li++) {
+      const L = CLOUD_LAYERS[li];
+      ctx.globalAlpha = L.alpha;
+      for (const c of clouds) if (c.L === li) ctx.drawImage(B[L.spr], Math.round(c.x), Math.round(c.y));
+    }
+
+    // 3) pimedas: maailm vaid aimatav
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = AMBIENT; ctx.drawImage(lit, 0, 0);
+    ctx.globalAlpha = 1;
+
+    // 4) valgusvihk
+    const [lx, ly] = toWorld(LAMP_X, LAMP_Y);
+    mctx.setTransform(1, 0, 0, 1, 0, 0); mctx.globalCompositeOperation = 'source-over';
+    mctx.clearRect(0, 0, W, H); mctx.drawImage(lit, 0, 0);
+    prep(mctx);
+    mctx.globalCompositeOperation = 'destination-in';
+    const g = mctx.createRadialGradient(lx, ly, 2, lx, ly, BEAM_LEN);
+    g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.6, 'rgba(0,0,0,0.8)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    mctx.fillStyle = g; beamPath(mctx, lx, ly); mctx.fill();
+    mctx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(msk, 0, 0);
+
+    prep(ctx);
+    const h = ctx.createRadialGradient(lx, ly, 1, lx, ly, BEAM_LEN);
+    h.addColorStop(0, 'rgba(255,233,160,0.20)'); h.addColorStop(0.4, 'rgba(255,233,160,0.07)'); h.addColorStop(1, 'rgba(255,233,160,0)');
+    ctx.fillStyle = h; beamPath(ctx, lx, ly); ctx.fill();
+
+    // 5) rattur
+    const f = bike.onGround && mode !== 'over' ? (wheelPhase | 0) % 2 : 0;
+    const pose = bike.duck ? 'duck' : 'ride';
+    ctx.save();
+    ctx.translate(Math.round(bike.x + PIVOT_X), Math.round(bike.y + PIVOT_Y));
+    ctx.rotate(bike.ang);
+    ctx.drawImage(B[pose][f], -PIVOT_X, -PIVOT_Y);
+    // mõõk
+    if (sword.t >= 0) {
+      const [shx, shy] = SHOULDER[pose];
+      const sx = shx - PIVOT_X, sy = shy - PIVOT_Y;
+      const p = ease(Math.min(1, sword.t / 12));
+      const a = -2.2 + p * 2.35;                                  // tagant-ülevalt ette-alla
+      // jälg
+      if (sword.t < 20) {
+        ctx.strokeStyle = 'rgba(255,245,215,' + (0.55 * (1 - sword.t / 20)) + ')';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(sx, sy, 16, -2.2, a); ctx.stroke();
+      }
+      drawSword(ctx, sx, sy, a, sword.t > 20 ? 1 - (sword.t - 20) / 6 : 1, true);
+    }
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,240,190,0.9)';
+    ctx.beginPath(); ctx.arc(lx, ly, 1.8, 0, 6.28); ctx.fill();
+
+    // killud ja punktid
+    for (const c of chips) { ctx.globalAlpha = Math.min(1, c.life / 20); ctx.fillStyle = c.c; ctx.fillRect(Math.round(c.x), Math.round(c.y), 1, 1); }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.font = 'bold 5px "Courier New", monospace';
+    for (const fl of floats) { ctx.globalAlpha = 1 - fl.t / 50; ctx.fillStyle = '#ffe9a0'; ctx.fillText(fl.s, fl.x, fl.y); }
+    ctx.globalAlpha = 1;
+
+    // 6) kasutajaliides
+    ctx.fillStyle = '#b8bcc8';
+    ctx.font = 'bold 7px "Courier New", monospace';
+    ctx.textAlign = 'right';
+    if (mode !== 'demo') ctx.fillText((hi ? 'HI ' + pad(hi) + '  ' : '') + pad(score), LW - 4, 4);
+    else if (hi) ctx.fillText('HI ' + pad(hi), LW - 4, 4);
+
+    // mõõga laadimise näidik (vasakul üleval)
+    if (mode === 'play') {
+      const ready = sword.cd <= 0;
+      drawSword(ctx, 5, 9, -0.6, ready ? 1 : 0.35);
+      ctx.fillStyle = 'rgba(184,188,200,0.25)'; ctx.fillRect(4, 13, 16, 1);
+      ctx.fillStyle = ready ? '#ffe9a0' : '#b8bcc8';
+      ctx.fillRect(4, 13, 16 * (1 - Math.max(0, sword.cd) / SWORD_CD), 1);
+      ctx.textAlign = 'left'; ctx.font = 'bold 6px "Courier New", monospace';
+      ctx.fillStyle = keyFwd ? '#ffe9a0' : keyBack ? '#7dacc4' : '#b8bcc8';
+      ctx.fillText(Math.round(speed * KMH) + ' km/h', 26, 6);
+      ctx.fillStyle = 'rgba(184,188,200,0.25)'; ctx.fillRect(26, 13, 30, 1);
+      ctx.fillStyle = '#b8bcc8'; ctx.fillRect(26, 13, 30 * (speed - SPEED_MIN) / (SPEED_TOP - SPEED_MIN), 1);
+    }
+    // puuteekraanil mõõganupp
+    if (TOUCH && mode === 'play') {
+      ctx.strokeStyle = 'rgba(184,188,200,0.35)'; ctx.lineWidth = 0.6;
+      ctx.beginPath(); ctx.arc(LW - 16, GROUND - 22, 9, 0, 6.28); ctx.stroke();
+      drawSword(ctx, LW - 21, GROUND - 17, -0.9, sword.cd <= 0 ? 0.9 : 0.3);
+    }
+
+    ctx.fillStyle = '#b8bcc8';
+    ctx.textAlign = 'center';
+    if (mode === 'demo') {
+      ctx.font = 'bold 7px "Courier New", monospace';
+      if ((now / 650 | 0) % 2 === 0) ctx.fillText(TXT_START, LW / 2, 22);
+      ctx.font = '5px "Courier New", monospace';
+      ctx.fillText(TXT_HELP, LW / 2, 33);
+    }
+    if (mode === 'over') {
+      ctx.font = 'bold 7px "Courier New", monospace';
+      ctx.fillText(TXT_OVER, LW / 2, 22);
+      ctx.font = '5px "Courier New", monospace';
+      ctx.fillText(TXT_AGAIN, LW / 2, 33);
+    }
+  }
+
+  // ---------- sisend ----------
+  function start() { reset(); mode = 'play'; }
+  function canRestart() { return performance.now() - overAt > 600; }
+  function pressJump() {
+    if (mode === 'demo') { start(); jump(); }
+    else if (mode === 'play') jump();
+    else if (canRestart()) start();
+  }
+  function pressDuck(on) {
+    if (on && mode === 'demo') start();
+    if (on && mode === 'over') { if (canRestart()) start(); return; }
+    wantDuck = on;
+  }
+  function pressSword() {
+    if (mode === 'demo') { start(); swing(); }
+    else if (mode === 'play') swing();
+    else if (canRestart()) start();
+  }
+  function onScreen() {
+    const r = mount.getBoundingClientRect();
+    return r.bottom > 0 && r.top < innerHeight;
+  }
+  mount.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    const r = mount.getBoundingClientRect();
+    const fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+    if (mode === 'play' && fx > 0.78) pressSword();
+    else if (mode === 'play' && fy > 0.6) { pressDuck(true); try { mount.setPointerCapture(e.pointerId); } catch (_) {} }
+    else pressJump();
+  });
+  const release = () => { wantDuck = false; };
+  mount.addEventListener('pointerup', release);
+  mount.addEventListener('pointercancel', release);
+  window.addEventListener('keydown', e => {
+    const t = e.target;
+    if (t && t !== document.body && t !== document.documentElement && t !== mount) return; // fookus mujal lehel
+    if (e.metaKey || e.ctrlKey || e.altKey || !onScreen()) return;                       // mäng pole nähtav
+    const playing = mode === 'play';
+    // demo ajal võtab mäng üle ainult tühiku ja X-i — nooled kerivad lehte nagu ikka
+    if (e.code === 'Space') { e.preventDefault(); pressJump(); }
+    else if (e.code === 'KeyX') { e.preventDefault(); if (!e.repeat) pressSword(); }
+    else if (!playing) return;
+    else if (e.code === 'ArrowUp') { e.preventDefault(); pressJump(); }
+    else if (e.code === 'ArrowDown') { e.preventDefault(); if (!e.repeat) pressDuck(true); }
+    else if (e.code === 'ArrowRight') { e.preventDefault(); keyFwd = true; }
+    else if (e.code === 'ArrowLeft') { e.preventDefault(); keyBack = true; }
+  });
+  window.addEventListener('keyup', e => {
+    if (e.code === 'ArrowDown') wantDuck = false;
+    if (e.code === 'ArrowRight') keyFwd = false;
+    if (e.code === 'ArrowLeft') keyBack = false;
+  });
+  window.addEventListener('blur', () => { release(); keyFwd = keyBack = false; });
+
+  // ---------- tsükkel (peatub, kui pole nähtav) ----------
+  let visible = true, last = performance.now();
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; last = performance.now(); }).observe(mount);
+  function loop(now) {
+    requestAnimationFrame(loop);
+    if (!visible || document.hidden) { last = now; return; }
+    const dt = Math.min(3, (now - last) / 16.667);
+    last = now;
+    if (mode === 'over' && now - overAt > IDLE_TO_DEMO) { reset(); mode = 'demo'; }
+    update(dt);
+    draw(now);
+  }
+  requestAnimationFrame(loop);
+})();
 </script>
 </body>
 </html>
