@@ -716,11 +716,12 @@
   const TXT_AGAIN = TOUCH ? 'uuesti: puuduta' : 'uuesti: tühik';
   const IDLE_TO_DEMO = 12000;        // ms pärast kaotust tagasi "screensaveri" režiimi
   const LOGICAL_H = 104, GROUND = 94;
-  const SPEED_START = 2.0, SPEED_MAX = 5.6, SPEED_ACC = 0.0007;   // automaatne kiirenemine
+  const SPEED_START = 1.4, SPEED_MAX = 4.8, SPEED_ACC = 0.0005;   // automaatne kiirenemine
   const SPEED_MIN = 1.2, SPEED_TOP = 8.5, THROTTLE = 0.05;           // ← → reguleerimine
   const KMH = 16;                    // kiirus → km/h näidikul
   const GRAVITY = 0.36, JUMP_V = -6.3;
-  const AMBIENT = 0.2;               // kui palju pimedas näha on (0–1)
+  const ARC_SPEED = 2.5;             // hüppekaar on ruumiliselt sama igal kiirusel (aeglaselt = hõljuvam)
+  const AMBIENT = 0.3;               // kui palju pimedas näha on (0–1)
   const BEAM_LEN = 250, BEAM_SPREAD = 0.22, BEAM_TILT = 0.07;
   const PIG_CHANCE = 0.3;            // lendavate sigade osakaal
   const SWORD_CD = 70;               // mõõga laadimisaeg (kaadrites, ~60 = 1 s)
@@ -730,7 +731,8 @@
   const PAL = { t:'#2c2c33', h:'#c4c8d2', g:'#7a7c86', m:'#3a3a44', p:'#962826', n:'#dc6e32',
                 y:'#ffe9a0', j:'#46506e', b:'#6e482c', f:'#bea078', s:'#e0b48c', e:'#111114',
                 v:'#a0a2ac', r:'#c84236', w:'#efe3c0', o:'#c87030',
-                k:'#8a8a94', d:'#3e3e46', q:'#d6d6d6', P:'#e899a6', D:'#b86476', W:'#f4f4f4' };
+                k:'#8a8a94', d:'#3e3e46', q:'#d6d6d6', P:'#f2a7b4', D:'#b45a6e', W:'#fafafa', L:'#ffd6de', V:'#c8cddc', S:'#e07c90',
+                G:'#264e32', F:'#46804e', H:'#80b268', T:'#60462e' };
 
   // ---------- sprite'id ----------
   const RIDER = {
@@ -883,20 +885,125 @@
       ".....ttttttttt.......................ttttttttt....",
       ".......ttttt...........................ttttt......"]
   };
-  const STONE = [
-    "...ggg...",".ggggggg.",".ggdgggg.","gggddgggg","gggdgdggg","gggdggggg",
-    "ggggggdgg","gggggddgg","ggggdgdgg","ggggggdgg","gdggggggg","gddgggggg",
-    "gdgdggggg","gdggggggg","ggggggggg"];
-  const ROCK = [
-    "....gggg....","..gggggggg..",".ggggggdggg.","ggggggggggdg","gggdgggggggg","gggggggggggg"];
-  const SHEEP = [
-    "..qqqqqqq....",".qqqqqqqqqkk.","qqqqqqqqqqkek","qqqqqqqqqqkk.",".qqqqqqqqq...",
-    "..k.k..k.k...","..k.k..k.k..."];
-  const PIG = [[
-    ".......WW......","......WWW......","..PPPPWWPPP....",".PePPPPPPPPP.P.","DDPPPPPPPPPPPP.",
-    "DDPPPPPPPPPPP..",".PPPPPPPPPPP...","..P.P....P.P...","..D.D....D.D..."],[
-    "...............","...............","..PPPPPPPPP....",".PePPPWWPPPP.P.","DDPPPWWWPPPPPP.",
-    "DDPPPWWPPPPPP..",".PPPPPPPPPPP...","..P.P....P.P...","..D.D....D.D..."]];
+  // kadakad (vastutulevad takistused)
+  const JUNIPERS = [
+    [
+      "....HF.....",
+      "...GFGF....",
+      "...HHFG....",
+      "...FFFFGG..",
+      "..GHFFGFG..",
+      "..GFHGFG.G.",
+      "..HFFFFGFG.",
+      "..FFFFGFGG.",
+      ".HHFFGFGF..",
+      ".HHFHGGFGFG",
+      ".FHHFGFFFFG",
+      "HHFFFFFGGFG",
+      "GHHHFGFFFG.",
+      ".HFHGFGGFF.",
+      ".HFHFFFFFFG",
+      ".FHFFFFFFFG",
+      ".HFHFGGFFF.",
+      "HHFHFGFFFF.",
+      "....TT....."],
+    [
+      ".....HHHFGFF.....",
+      "...HFHHFGFFGFG...",
+      "...HFFFFFFGFFFG..",
+      "..HHHHFGFFGGFGFG.",
+      "GHFFHFHGGGFFGGGFG",
+      ".HFHHHHFGGFGFFFGG",
+      ".HFHFHHGFFFFFFFFG",
+      "GHHFFFHGFFFGGFFFG",
+      "GFHHHFHFFFFGFFFFG",
+      ".HFFFFHGGFGFFGFFG",
+      ".......TT........"],
+    [
+      "...HHFG...",
+      "..GFGGG...",
+      ".GFHFFGGG.",
+      ".FHHFFGGF.",
+      ".HHHFFFGFG",
+      ".FHHFGGGFG",
+      "GHFHFGFFGG",
+      "HFHHFFFGF.",
+      "....TT...."],
+    [
+      "........F............",
+      ".....HHFFHGGGGG......",
+      ".....GHFFFFFFFF......",
+      ".....FHFHFFGGFFFG....",
+      "...HFHHFFGGFFFFFFG...",
+      "..HHFHFHFFFGFFFFFFG..",
+      ".GFHHHHHHFFFFFGGGFFG.",
+      ".FFHHFHFFGFFGFGFFFGF.",
+      "HFHFFFFFFGFFGFFGFFFFG",
+      ".FFHFHHHFGFFFFGGFGFFG",
+      "HHHFHHHHFFFFFFGFGFFGG",
+      "HFFHFHFHFGGGFFFFFGGFG",
+      "GHHHHHHHFFFFFFFGGGFGG",
+      ".........TT.........."],
+    [
+      ".....FG....",
+      "....FFG....",
+      "....HGG....",
+      "..GFHFFF...",
+      "...FHFGFG..",
+      "..HHFFFFG..",
+      "..FHFFGFG..",
+      ".HFFHFFFGG.",
+      ".GFFHFGGF.G",
+      ".HHHFGFFFF.",
+      "HHHFFFFFGFG",
+      "GHHHFFFFFG.",
+      ".FHHFGFFFFG",
+      "HHFFGFFGFGG",
+      ".FHHFFFFFF.",
+      ".HFFFFFGFG.",
+      "HFHHFFFGGFG",
+      ".FHHFFGFGG.",
+      "....TT....."]];
+  // lendav siga (2 kaadrit: tiivad üleval / all)
+  const PIG = [
+    [
+      ".......................V....",
+      ".................V...VV.....",
+      "................VW.VWWW.....",
+      "...............WWWWWWW......",
+      "........DD....WWWWWWWW......",
+      ".........PDDDWWWWWWWW.......",
+      ".......DDDPPWWWWWWWWWD......",
+      "......DePPLLLLLLLLLPPPD..DD.",
+      "..DSSSPePPPPPPPPPPPPPPPDD.D.",
+      ".DSSSSPPPPPPPPPPPPPPPPPPDD..",
+      ".DSeSSPPPPPPPPPPPPPPPPPPD...",
+      ".DSeSSPPPPPPPPPPPPPPPPPPD...",
+      "..DSSSPPPPPPPPPPPPPPPPPPD...",
+      ".....DPPPPPPPPPPPPPPPPPD....",
+      "......DPPPPPPPPPPPPPPPD.....",
+      ".......DDDPPPPPPPPPDDD......",
+      "........D.DDDDDDDDD.D.......",
+      "........D..D.....D..D......."],
+    [
+      "............................",
+      "............................",
+      "............................",
+      "............................",
+      "........DD..................",
+      ".........PDDDDDDDDD.........",
+      ".......DDDPPPPPPPPPDDD......",
+      "......DePPLLLLLLLLLPPPD..DD.",
+      "..DSSSPePPPPWWWWWWWWWPPDD.D.",
+      ".DSSSSPPPPPPPWWWWWWWWPPPDD..",
+      ".DSeSSPPPPPPPPWWWWWWWPPPD...",
+      ".DSeSSPPPPPPPPPWWWWWWWPPD...",
+      "..DSSSPPPPPPPPPPWWPWWWPPD...",
+      ".....DPPPPPPPPPPVWPPWVWD....",
+      "......DPPPPPPPPPPVPPPPV.....",
+      ".......DDDPPPPPPPPPDDD.V....",
+      "........D.DDDDDDDDD.D.......",
+      "........D..D.....D..D......."]];
   const CLOUD = [
     "......kkkk.......","....kk....kk.....","..kkk.......k....",".k...........kkk.","k...............k","kkkkkkkkkkkkkkkkk"];
   const CLOUD_S = [
@@ -924,7 +1031,7 @@
   const B = {
     ride: [bmp(RIDER.ride0), bmp(RIDER.ride1)],
     duck: [bmp(RIDER.duck0), bmp(RIDER.duck1)],
-    stone: bmp(STONE), rock: bmp(ROCK), sheep: bmp(SHEEP),
+    jun: JUNIPERS.map(bmp),
     pig: [bmp(PIG[0]), bmp(PIG[1])],
     cloud: bmp(CLOUD), cloudS: bmp(CLOUD_S), cloudL: bmp(CLOUD_L), moon: bmp(MOON)
   };
@@ -932,8 +1039,8 @@
   const PIVOT_X = 9, PIVOT_Y = 28;      // tagaratta kese (wheelie pöördepunkt)
   const LAMP_X = 38, LAMP_Y = 16;       // esituli
   const SHOULDER = { ride: [16, 10], duck: [24, 14] };
-  const CHIPS = { stone: ['#7c7c86', '#3e3e46'], rock: ['#7c7c86', '#3e3e46'],
-                  sheep: ['#d6d6d6', '#8a8a94'], pig: ['#e899a6', '#b86476', '#f4f4f4'] };
+  const CHIPS = { juniper: ['#264e32', '#46804e', '#80b268', '#60462e'],
+                  pig: ['#f2a7b4', '#b45a6e', '#fafafa', '#ffd6de'] };
 
   // ---------- canvas'id ----------
   const cv = document.createElement('canvas');
@@ -989,7 +1096,7 @@
   reset();
 
   function jump() {
-    if (bike.onGround && !bike.duck) { bike.vy = JUMP_V; bike.onGround = false; }
+    if (bike.onGround && !bike.duck) { bike.vy = JUMP_V * (speed / ARC_SPEED); bike.onGround = false; }
   }
   function swing() {
     if (sword.cd > 0 || sword.t >= 0) return;
@@ -997,21 +1104,17 @@
   }
 
   function spawn() {
-    const r = Math.random();
     let o;
-    if (r < PIG_CHANCE || spawned === 1) {
-      o = { kind: 'pig', w: 15, h: 9, y: GROUND - BH - 1 + (Math.random() * 3 | 0), flap: Math.random() * 20, bob: 0 };
-    } else if (r < 0.55) o = { kind: 'stone', img: B.stone, w: 9, h: 15 };
-    else if (r < 0.75)  o = { kind: 'sheep', img: B.sheep, w: 13, h: 7 };
-    else {
-      const n = 1 + (Math.random() * (spawned > 8 ? 3 : 2) | 0);
-      o = { kind: 'rock', w: 12 * n, h: 6, n };
+    if (Math.random() < PIG_CHANCE || spawned === 1) {
+      o = { kind: 'pig', w: 28, h: 18, y: GROUND - 45, flap: Math.random() * 20, bob: 0 };
+    } else {
+      const img = B.jun[Math.random() * B.jun.length | 0];
+      o = { kind: 'juniper', img, w: img.width, h: img.height, y: GROUND - img.height };
     }
-    if (o.kind !== 'pig') o.y = GROUND - o.h;
     o.x = LW + 10;
     o.plan = Math.random() < 0.4 ? 'sword' : 'dodge';    // autopiloodi jaoks
     obstacles.push(o); spawned++;
-    nextGap = (90 + Math.random() * 110) * (speed / SPEED_START) * 0.8 + 50;
+    nextGap = 140 + Math.random() * 170;                  // vahe pikslites (sõltumata kiirusest)
   }
 
   function hitbox() {
@@ -1029,7 +1132,7 @@
       x: o.x + Math.random() * o.w, y: o.y + (o.bob || 0) + Math.random() * o.h,
       vx: 1 + Math.random() * 3, vy: -1.5 - Math.random() * 3, life: 40 + Math.random() * 25,
       c: cols[i % cols.length] });
-    floats.push({ x: o.x + o.w / 2, y: o.y - 4, t: 0, s: o.kind === 'pig' ? 'OINK! +' + KILL_BONUS : '+' + KILL_BONUS });
+    floats.push({ x: o.x + o.w / 2, y: o.y - 4, t: 0, s: o.kind === 'pig' ? 'OINK! +' + KILL_BONUS : 'KRÕKS! +' + KILL_BONUS });
     if (mode === 'play') score += KILL_BONUS;
   }
 
@@ -1040,8 +1143,8 @@
       if (o.x + o.w < bike.x) continue;
       if (o.plan === 'sword' && dist < SWORD_REACH - 6 && dist > -10 && sword.cd <= 0) { swing(); continue; }
       if (o.plan === 'sword' && sword.cd <= 0 && dist > 0) continue;   // ootab löögiulatust
-      if (o.kind === 'pig') { if (dist < speed * 12) autoDuck = true; continue; }
-      if (dist >= 0 && dist < speed * 9) { jump(); break; }
+      if (o.kind === 'pig') { if (dist < 34) autoDuck = true; continue; }
+      if (dist >= -4 && dist < 12) { jump(); break; }
     }
   }
 
@@ -1069,7 +1172,8 @@
     bike.duck = duckInput && bike.onGround;
 
     // füüsika (↓ õhus = kiirem maandumine)
-    bike.vy += (GRAVITY + (duckInput && !bike.onGround ? 0.5 : 0)) * dt;
+    const k = speed / ARC_SPEED;
+    bike.vy += (GRAVITY + (duckInput && !bike.onGround ? 0.5 : 0)) * k * k * dt;
     bike.y += bike.vy * dt;
     const floor = GROUND - BH;
     if (bike.y >= floor) {
@@ -1079,7 +1183,7 @@
 
     // wheelie: esiratas tõuseb hüppel, langedes tuleb aeglaselt alla
     let target = mode === 'play' && keyFwd && bike.onGround ? -0.05 : 0;
-    if (!bike.onGround) target = bike.vy < 0 ? -0.38 : Math.min(0, -0.38 + bike.vy * 0.08);
+    if (!bike.onGround) target = bike.vy < 0 ? -0.38 : Math.min(0, -0.38 + bike.vy / k * 0.08);
     bike.ang += (target - bike.ang) * Math.min(1, 0.22 * dt);
 
     // mõõk
@@ -1101,7 +1205,7 @@
     if (nextGap <= 0) spawn();
     for (const o of obstacles) {
       o.x -= (o.kind === 'pig' ? speed * 1.25 : speed) * dt;
-      if (o.kind === 'pig') { o.flap += dt; o.bob = Math.sin(o.flap / 7) * 1.5; }
+      if (o.kind === 'pig') { o.flap += dt; o.bob = Math.sin(o.flap / 7); }
     }
     obstacles = obstacles.filter(o => o.x + o.w > -10);
 
@@ -1165,9 +1269,7 @@
     for (const p of pebbles) lctx.fillRect(Math.round(p.x), p.y, p.w, 1);
     for (const o of obstacles) {
       const x = Math.round(o.x);
-      if (o.kind === 'pig') lctx.drawImage(B.pig[(o.flap / 8 | 0) % 2], x, Math.round(o.y + o.bob));
-      else if (o.kind === 'rock') for (let i = 0; i < o.n; i++) lctx.drawImage(B.rock, x + i * 12, o.y);
-      else lctx.drawImage(o.img, x, o.y);
+      if (o.kind !== 'pig') lctx.drawImage(o.img, x, o.y);
     }
 
     // 2) taevas
@@ -1205,6 +1307,15 @@
     const h = ctx.createRadialGradient(lx, ly, 1, lx, ly, BEAM_LEN);
     h.addColorStop(0, 'rgba(255,233,160,0.20)'); h.addColorStop(0.4, 'rgba(255,233,160,0.07)'); h.addColorStop(1, 'rgba(255,233,160,0)');
     ctx.fillStyle = h; beamPath(ctx, lx, ly); ctx.fill();
+
+    // lendavad sead on alati hästi näha (kuuvalgel helendavad)
+    for (const o of obstacles) if (o.kind === 'pig') {
+      const img = B.pig[(o.flap / 9 | 0) % 2], x = Math.round(o.x), y = Math.round(o.y + o.bob);
+      const glow = ctx.createRadialGradient(x + 14, y + 10, 2, x + 14, y + 10, 20);
+      glow.addColorStop(0, 'rgba(255,190,205,0.22)'); glow.addColorStop(1, 'rgba(255,190,205,0)');
+      ctx.fillStyle = glow; ctx.fillRect(x - 8, y - 10, 44, 40);
+      ctx.drawImage(img, x, y);
+    }
 
     // 5) rattur
     const f = bike.onGround && mode !== 'over' ? (wheelPhase | 0) % 2 : 0;
