@@ -710,22 +710,23 @@
   // ---------- seaded ----------
   const TOUCH = window.matchMedia && matchMedia('(pointer: coarse)').matches;
   const TXT_START = TOUCH ? 'PUUDUTA — MÄNGI' : 'TÜHIK — MÄNGI';
-  const TXT_HELP  = TOUCH ? 'ülal: hüpe · all (hoia): kummarda · paremal: mõõk'
-                          : 'tühik / ↑ hüpe · ↓ kummarda · X mõõk · ← → kiirus';
+  const TXT_HELP  = TOUCH ? 'ülal: hüpe · all (hoia): kummarda · paremal: haamer'
+                          : '↑ hüpe · ↓ kummarda · ← → liigu · shift+↑↓ kiirus · X haamer';
   const TXT_OVER  = 'G A M E   O V E R';
   const TXT_AGAIN = TOUCH ? 'uuesti: puuduta' : 'uuesti: tühik';
   const IDLE_TO_DEMO = 12000;        // ms pärast kaotust tagasi "screensaveri" režiimi
   const LOGICAL_H = 104, GROUND = 94;
   const SPEED_START = 1.4, SPEED_MAX = 4.8, SPEED_ACC = 0.0005;   // automaatne kiirenemine
-  const SPEED_MIN = 1.2, SPEED_TOP = 8.5, THROTTLE = 0.05;           // ← → reguleerimine
+  const SPEED_MIN = 1.2, SPEED_TOP = 8.5, THROTTLE = 0.05;           // shift + ↑ ↓ reguleerimine
+  const MOVE = 1.6, X_MIN = 4, X_MAX = 0.5;                          // ← → liikumine ekraanil (X_MAX = osa laiusest)
   const KMH = 16;                    // kiirus → km/h näidikul
   const GRAVITY = 0.36, JUMP_V = -6.3;
   const ARC_SPEED = 2.5;             // hüppekaar on ruumiliselt sama igal kiirusel (aeglaselt = hõljuvam)
   const AMBIENT = 0.3;               // kui palju pimedas näha on (0–1)
   const BEAM_LEN = 250, BEAM_SPREAD = 0.22, BEAM_TILT = 0.07;
   const PIG_CHANCE = 0.3;            // lendavate sigade osakaal
-  const SWORD_CD = 70;               // mõõga laadimisaeg (kaadrites, ~60 = 1 s)
-  const SWORD_REACH = 26;            // kui kaugele ette mõõk ulatub
+  const HAMMER_CD = 70;              // Mjölniri laadimisaeg (kaadrites, ~60 = 1 s)
+  const HAMMER_REACH = 26;           // kui kaugele ette haamer ulatub
   const KILL_BONUS = 10;
 
   const PAL = { t:'#2c2c33', h:'#c4c8d2', g:'#7a7c86', m:'#3a3a44', p:'#962826', n:'#dc6e32',
@@ -888,82 +889,100 @@
   // kadakad (vastutulevad takistused)
   const JUNIPERS = [
     [
-      "....HF.....",
-      "...GFGF....",
-      "...HHFG....",
-      "...FFFFGG..",
-      "..GHFFGFG..",
-      "..GFHGFG.G.",
-      "..HFFFFGFG.",
-      "..FFFFGFGG.",
-      ".HHFFGFGF..",
-      ".HHFHGGFGFG",
-      ".FHHFGFFFFG",
-      "HHFFFFFGGFG",
-      "GHHHFGFFFG.",
-      ".HFHGFGGFF.",
-      ".HFHFFFFFFG",
-      ".FHFFFFFFFG",
-      ".HFHFGGFFF.",
-      "HHFHFGFFFF.",
-      "....TT....."],
+      "...F...",
+      "..GF...",
+      "..HGG..",
+      "..HGFG.",
+      ".GFFGG.",
+      ".FFFFF.",
+      ".HHGGF.",
+      "GHHFFF.",
+      "HHFFGFG",
+      ".HHGGF.",
+      ".HFGFGG",
+      "GFFFFGG",
+      ".HHGFF.",
+      ".HFFFF.",
+      "...T..."],
     [
-      ".....HHHFGFF.....",
-      "...HFHHFGFFGFG...",
-      "...HFFFFFFGFFFG..",
-      "..HHHHFGFFGGFGFG.",
-      "GHFFHFHGGGFFGGGFG",
-      ".HFHHHHFGGFGFFFGG",
-      ".HFHFHHGFFFFFFFFG",
-      "GHHFFFHGFFFGGFFFG",
-      "GFHHHFHFFFFGFFFFG",
-      ".HFFFFHGGFGFFGFFG",
-      ".......TT........"],
+      "....F....",
+      "....G....",
+      "...GFG...",
+      "..HFGFG..",
+      "..HFFG...",
+      ".HHHGFF..",
+      ".GFHGFFG.",
+      ".HHFFGGF.",
+      ".HHHFFFG.",
+      "HHHHFFGF.",
+      "GHHFFGFF.",
+      "GFHHFFFFG",
+      ".FHFFFFFG",
+      "HFHFGFFFG",
+      "HFHFFFFFG",
+      "GFFFGFFFG",
+      ".HHFGFFG.",
+      "....T...."],
     [
-      "...HHFG...",
-      "..GFGGG...",
-      ".GFHFFGGG.",
-      ".FHHFFGGF.",
-      ".HHHFFFGFG",
-      ".FHHFGGGFG",
-      "GHFHFGFFGG",
-      "HFHHFFFGF.",
-      "....TT...."],
+      "....F....",
+      "....F....",
+      "...GGG...",
+      "...FFFG..",
+      "..HFGG...",
+      "..HFGFG..",
+      ".HHHFGF..",
+      "..HHGFGG.",
+      ".HHHFGFG.",
+      ".HFHFFGG.",
+      ".HFFFGFF.",
+      "HHHHFFFFG",
+      ".FHHGFFFG",
+      "GHFHGGFFG",
+      "HFHHFGFGG",
+      "HFFHFFFGG",
+      "HFFHGFFF.",
+      "HHHFFFGGG",
+      "GFFFFGFGG",
+      "GHHHFGFF.",
+      "....T...."],
     [
-      "........F............",
-      ".....HHFFHGGGGG......",
-      ".....GHFFFFFFFF......",
-      ".....FHFHFFGGFFFG....",
-      "...HFHHFFGGFFFFFFG...",
-      "..HHFHFHFFFGFFFFFFG..",
-      ".GFHHHHHHFFFFFGGGFFG.",
-      ".FFHHFHFFGFFGFGFFFGF.",
-      "HFHFFFFFFGFFGFFGFFFFG",
-      ".FFHFHHHFGFFFFGGFGFFG",
-      "HHHFHHHHFFFFFFGFGFFGG",
-      "HFFHFHFHFGGGFFFFFGGFG",
-      "GHHHHHHHFFFFFFFGGGFGG",
-      ".........TT.........."],
-    [
-      ".....FG....",
-      "....FFG....",
-      "....HGG....",
-      "..GFHFFF...",
-      "...FHFGFG..",
-      "..HHFFFFG..",
-      "..FHFFGFG..",
-      ".HFFHFFFGG.",
-      ".GFFHFGGF.G",
-      ".HHHFGFFFF.",
-      "HHHFFFFFGFG",
-      "GHHHFFFFFG.",
-      ".FHHFGFFFFG",
-      "HHFFGFFGFGG",
-      ".FHHFFFFFF.",
-      ".HFFFFFGFG.",
-      "HFHHFFFGGFG",
-      ".FHHFFGFGG.",
-      "....TT....."]];
+      ".....F.....",
+      "....GG.....",
+      "....HFG....",
+      "...HHGF....",
+      "....HFFG...",
+      "...HFFFGG..",
+      "...HHGGFG..",
+      "..HFHGGFF..",
+      "..HFHGGGFG.",
+      ".GHHFGFFFG.",
+      "HFHHFGFFGGG",
+      "GFHHFFGFFFG",
+      ".FHFHFGFFF.",
+      "HFFFHGFGFFG",
+      ".HFFHFGFFFG",
+      ".HHHHGFFGGG",
+      "GHHFFFFFFFG",
+      "HFFHHGFFFG.",
+      "GFHHFGGGFF.",
+      "HHHFFFFFFFG",
+      "HHHFHFFFGF.",
+      "HHFFHFGFFF.",
+      ".....T....."]];
+  // Thori haamer Mjölnir (käepide vasakul, pea paremal; haare = veerg 1, rida 5)
+  const HAMMER = [
+    "..........DSSSSSSD",
+    "..........SLLLLLLS",
+    "..........SLSSSSSS",
+    "..........SSSSSSSS",
+    "..bbbbbbbbSSSDSDSS",
+    "oowbwbwbwbSSDSDSSS",
+    "..bbbbbbbbSSSDSDSS",
+    "..........SSSSSSSS",
+    "..........SLSSSSSS",
+    "..........SLLLLLLS",
+    "..........DSSSSSSD"];
+  const HAMMER_PAL = { S:'#9aa0ac', L:'#dde2ea', D:'#5a5f6a', b:'#6e482c', w:'#a8794a', o:'#d4a84a' };
   // lendav siga (2 kaadrit: tiivad üleval / all)
   const PIG = [
     [
@@ -1021,17 +1040,17 @@
     "...yyyy...","..yyyyy...",".yyyyy....","yyyyy.....","yyyyy.....",
     "yyyyy.....","yyyyy.....",".yyyyy....","..yyyyy...","...yyyy..."];
 
-  function bmp(rows) {
+  function bmp(rows, pal = PAL) {
     const c = document.createElement('canvas');
     c.width = rows[0].length; c.height = rows.length;
     const x = c.getContext('2d');
-    rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') { x.fillStyle = PAL[r[i]]; x.fillRect(i, j, 1, 1); } });
+    rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') { x.fillStyle = pal[r[i]]; x.fillRect(i, j, 1, 1); } });
     return c;
   }
   const B = {
     ride: [bmp(RIDER.ride0), bmp(RIDER.ride1)],
     duck: [bmp(RIDER.duck0), bmp(RIDER.duck1)],
-    jun: JUNIPERS.map(bmp),
+    jun: JUNIPERS.map(r => bmp(r)), hammer: bmp(HAMMER, HAMMER_PAL),
     pig: [bmp(PIG[0]), bmp(PIG[1])],
     cloud: bmp(CLOUD), cloudS: bmp(CLOUD_S), cloudL: bmp(CLOUD_L), moon: bmp(MOON)
   };
@@ -1045,7 +1064,7 @@
   // ---------- canvas'id ----------
   const cv = document.createElement('canvas');
   cv.style.cssText = 'width:100%;height:100%;display:block';
-  cv.setAttribute('aria-label', 'Viking Rider: tühik hüppab, nool alla kummardab, X lööb mõõgaga');
+  cv.setAttribute('aria-label', 'Viking Rider: nool üles hüppab, alla kummardab, vasak-parem liigutab, shift+nooled muudavad kiirust, X lööb haamriga');
   mount.appendChild(cv);
   const ctx = cv.getContext('2d');
   const lit = document.createElement('canvas'), lctx = lit.getContext('2d');
@@ -1074,14 +1093,14 @@
   let hi = 0;
   try { hi = +localStorage.getItem('vikingRiderHi') || 0; } catch (e) {}
   let score, speed, obstacles, clouds, pebbles, bike, nextGap, frame, overAt, spawned;
-  let sword, chips, floats, boost, wheelPhase;
-  let keyFwd = false, keyBack = false;
+  let hammer, chips, floats, boost, wheelPhase;
+  let keyFaster = false, keySlower = false, keyLeft = false, keyRight = false;
   let wantDuck = false, autoDuck = false;
 
   function reset() {
     score = 0; speed = SPEED_START; obstacles = []; frame = 0; spawned = 0;
     bike = { x: 14, y: GROUND - BH, vy: 0, onGround: true, ang: 0, duck: false };
-    sword = { t: -1, cd: 0 };
+    hammer = { t: -1, cd: 0 };
     chips = []; floats = []; boost = 0; wheelPhase = 0;
     nextGap = 90;
     clouds = [];
@@ -1099,8 +1118,8 @@
     if (bike.onGround && !bike.duck) { bike.vy = JUMP_V * (speed / ARC_SPEED); bike.onGround = false; }
   }
   function swing() {
-    if (sword.cd > 0 || sword.t >= 0) return;
-    sword.t = 0; sword.cd = SWORD_CD;
+    if (hammer.cd > 0 || hammer.t >= 0) return;
+    hammer.t = 0; hammer.cd = HAMMER_CD;
   }
 
   function spawn() {
@@ -1112,7 +1131,7 @@
       o = { kind: 'juniper', img, w: img.width, h: img.height, y: GROUND - img.height };
     }
     o.x = LW + 10;
-    o.plan = Math.random() < 0.4 ? 'sword' : 'dodge';    // autopiloodi jaoks
+    o.plan = Math.random() < 0.4 ? 'hammer' : 'dodge';    // autopiloodi jaoks
     obstacles.push(o); spawned++;
     nextGap = 140 + Math.random() * 170;                  // vahe pikslites (sõltumata kiirusest)
   }
@@ -1132,6 +1151,9 @@
       x: o.x + Math.random() * o.w, y: o.y + (o.bob || 0) + Math.random() * o.h,
       vx: 1 + Math.random() * 3, vy: -1.5 - Math.random() * 3, life: 40 + Math.random() * 25,
       c: cols[i % cols.length] });
+    for (let i = 0; i < 8; i++) chips.push({
+      x: o.x + o.w / 2, y: o.y + (o.bob || 0) + o.h / 2, vx: Math.random() * 4 - 1, vy: -Math.random() * 4,
+      life: 12 + Math.random() * 10, c: i % 2 ? '#ffffff' : '#bfe0ff' });
     floats.push({ x: o.x + o.w / 2, y: o.y - 4, t: 0, s: o.kind === 'pig' ? 'OINK! +' + KILL_BONUS : 'KRÕKS! +' + KILL_BONUS });
     if (mode === 'play') score += KILL_BONUS;
   }
@@ -1141,8 +1163,8 @@
     for (const o of obstacles) {
       const dist = o.x - (bike.x + 44);
       if (o.x + o.w < bike.x) continue;
-      if (o.plan === 'sword' && dist < SWORD_REACH - 6 && dist > -10 && sword.cd <= 0) { swing(); continue; }
-      if (o.plan === 'sword' && sword.cd <= 0 && dist > 0) continue;   // ootab löögiulatust
+      if (o.plan === 'hammer' && dist < HAMMER_REACH - 6 && dist > -10 && hammer.cd <= 0) { swing(); continue; }
+      if (o.plan === 'hammer' && hammer.cd <= 0 && dist > 0) continue;   // ootab löögiulatust
       if (o.kind === 'pig') { if (dist < 34) autoDuck = true; continue; }
       if (dist >= -4 && dist < 12) { jump(); break; }
     }
@@ -1159,8 +1181,13 @@
     // ← → muudab kiirust; automaatne kiirenemine jätkub taustal
     const base = Math.min(SPEED_MAX, (speed - boost) + SPEED_ACC * dt);
     if (mode === 'play') {
-      if (keyFwd)  boost += THROTTLE * dt;
-      if (keyBack) boost -= THROTTLE * dt;
+      if (keyFaster) boost += THROTTLE * dt;
+      if (keySlower) boost -= THROTTLE * dt;
+      // ← → liigutab ratturit ekraanil edasi-tagasi
+      bike.x += ((keyRight ? 1 : 0) - (keyLeft ? 1 : 0)) * MOVE * dt;
+      bike.x = Math.max(X_MIN, Math.min(LW * X_MAX - BW, bike.x));
+    } else if (mode === 'demo') {
+      bike.x += (14 - bike.x) * 0.05 * dt;
     }
     boost = Math.max(SPEED_MIN - base, Math.min(SPEED_TOP - base, boost));
     speed = base + boost;
@@ -1182,22 +1209,22 @@
     }
 
     // wheelie: esiratas tõuseb hüppel, langedes tuleb aeglaselt alla
-    let target = mode === 'play' && keyFwd && bike.onGround ? -0.05 : 0;
+    let target = mode === 'play' && (keyFaster || keyRight) && bike.onGround ? -0.05 : 0;
     if (!bike.onGround) target = bike.vy < 0 ? -0.38 : Math.min(0, -0.38 + bike.vy / k * 0.08);
     bike.ang += (target - bike.ang) * Math.min(1, 0.22 * dt);
 
-    // mõõk
-    if (sword.cd > 0) sword.cd -= dt;
-    if (sword.t >= 0) {
-      sword.t += dt;
-      if (sword.t >= 4 && sword.t <= 16) {
-        const x0 = bike.x + 30, x1 = bike.x + 44 + SWORD_REACH;
+    // haamer
+    if (hammer.cd > 0) hammer.cd -= dt;
+    if (hammer.t >= 0) {
+      hammer.t += dt;
+      if (hammer.t >= 4 && hammer.t <= 16) {
+        const x0 = bike.x + 30, x1 = bike.x + 44 + HAMMER_REACH;
         obstacles = obstacles.filter(o => {
           if (o.x < x1 && o.x + o.w > x0 && o.y + o.h > bike.y - 14) { smash(o); return false; }
           return true;
         });
       }
-      if (sword.t > 26) sword.t = -1;
+      if (hammer.t > 26) hammer.t = -1;
     }
 
     // takistused
@@ -1219,7 +1246,7 @@
     if (mode === 'play') {
       const [bx, by, bw, bh] = hitbox();
       for (const o of obstacles) if (overlaps(o, bx, by, bw, bh)) {
-        mode = 'over'; overAt = performance.now(); wantDuck = false; keyFwd = keyBack = false;
+        mode = 'over'; overAt = performance.now(); wantDuck = false; keyFaster = keySlower = keyLeft = keyRight = false;
         const s = Math.floor(score);
         if (s > hi) { hi = s; try { localStorage.setItem('vikingRiderHi', hi); } catch (e) {} }
         break;
@@ -1243,20 +1270,12 @@
   const pad = n => String(Math.floor(n)).padStart(5, '0');
   const ease = t => 1 - Math.pow(1 - t, 3);
 
-  function drawSword(c, sx, sy, ang, alpha, thick) {
-    // tera pikslitena piki suunda
-    const cs = Math.cos(ang), sn = Math.sin(ang);
+  function drawHammer(c, x, y, ang, alpha, sc = 1) {
+    c.save();
     c.globalAlpha = alpha;
-    c.fillStyle = '#8a6a3a';                                    // käepide
-    for (let i = 0; i < 3; i++) c.fillRect(Math.round(sx + cs * i), Math.round(sy + sn * i), 1, 1);
-    c.fillStyle = '#d4a84a';                                    // ristpuu
-    for (let i = -2; i <= 2; i++) c.fillRect(Math.round(sx + cs * 3 - sn * i), Math.round(sy + sn * 3 + cs * i), 1, 1);
-    c.fillStyle = '#e4e8f0';                                    // tera
-    for (let i = 4; i < 20; i++) {
-      c.fillRect(Math.round(sx + cs * i), Math.round(sy + sn * i), 1, 1);
-      if (thick && i < 18) c.fillRect(Math.round(sx + cs * i - sn), Math.round(sy + sn * i + cs), 1, 1);
-    }
-    c.globalAlpha = 1;
+    c.translate(x, y); c.rotate(ang); c.scale(sc, sc);
+    c.drawImage(B.hammer, -1, -5);
+    c.restore();
   }
 
   function draw(now) {
@@ -1324,19 +1343,19 @@
     ctx.translate(Math.round(bike.x + PIVOT_X), Math.round(bike.y + PIVOT_Y));
     ctx.rotate(bike.ang);
     ctx.drawImage(B[pose][f], -PIVOT_X, -PIVOT_Y);
-    // mõõk
-    if (sword.t >= 0) {
+    // haamer
+    if (hammer.t >= 0) {
       const [shx, shy] = SHOULDER[pose];
       const sx = shx - PIVOT_X, sy = shy - PIVOT_Y;
-      const p = ease(Math.min(1, sword.t / 12));
+      const p = ease(Math.min(1, hammer.t / 12));
       const a = -2.2 + p * 2.35;                                  // tagant-ülevalt ette-alla
-      // jälg
-      if (sword.t < 20) {
-        ctx.strokeStyle = 'rgba(255,245,215,' + (0.55 * (1 - sword.t / 20)) + ')';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(sx, sy, 16, -2.2, a); ctx.stroke();
+      // jälg (elektriline sinakas kaar ümber haamripea)
+      if (hammer.t < 20) {
+        ctx.strokeStyle = 'rgba(180,215,255,' + (0.5 * (1 - hammer.t / 20)) + ')';
+        ctx.lineWidth = 7;
+        ctx.beginPath(); ctx.arc(sx, sy, 13, -2.2, a); ctx.stroke();
       }
-      drawSword(ctx, sx, sy, a, sword.t > 20 ? 1 - (sword.t - 20) / 6 : 1, true);
+      drawHammer(ctx, sx, sy, a, hammer.t > 20 ? 1 - (hammer.t - 20) / 6 : 1);
     }
     ctx.restore();
     ctx.fillStyle = 'rgba(255,240,190,0.9)';
@@ -1357,24 +1376,24 @@
     if (mode !== 'demo') ctx.fillText((hi ? 'HI ' + pad(hi) + '  ' : '') + pad(score), LW - 4, 4);
     else if (hi) ctx.fillText('HI ' + pad(hi), LW - 4, 4);
 
-    // mõõga laadimise näidik (vasakul üleval)
+    // haamri laadimise näidik (vasakul üleval)
     if (mode === 'play') {
-      const ready = sword.cd <= 0;
-      drawSword(ctx, 5, 9, -0.6, ready ? 1 : 0.35);
+      const ready = hammer.cd <= 0;
+      drawHammer(ctx, 6, 9, -0.5, ready ? 1 : 0.35, 0.75);
       ctx.fillStyle = 'rgba(184,188,200,0.25)'; ctx.fillRect(4, 13, 16, 1);
       ctx.fillStyle = ready ? '#ffe9a0' : '#b8bcc8';
-      ctx.fillRect(4, 13, 16 * (1 - Math.max(0, sword.cd) / SWORD_CD), 1);
+      ctx.fillRect(4, 13, 16 * (1 - Math.max(0, hammer.cd) / HAMMER_CD), 1);
       ctx.textAlign = 'left'; ctx.font = 'bold 6px "Courier New", monospace';
-      ctx.fillStyle = keyFwd ? '#ffe9a0' : keyBack ? '#7dacc4' : '#b8bcc8';
+      ctx.fillStyle = keyFaster ? '#ffe9a0' : keySlower ? '#7dacc4' : '#b8bcc8';
       ctx.fillText(Math.round(speed * KMH) + ' km/h', 26, 6);
       ctx.fillStyle = 'rgba(184,188,200,0.25)'; ctx.fillRect(26, 13, 30, 1);
       ctx.fillStyle = '#b8bcc8'; ctx.fillRect(26, 13, 30 * (speed - SPEED_MIN) / (SPEED_TOP - SPEED_MIN), 1);
     }
-    // puuteekraanil mõõganupp
+    // puuteekraanil haamrinupp
     if (TOUCH && mode === 'play') {
       ctx.strokeStyle = 'rgba(184,188,200,0.35)'; ctx.lineWidth = 0.6;
       ctx.beginPath(); ctx.arc(LW - 16, GROUND - 22, 9, 0, 6.28); ctx.stroke();
-      drawSword(ctx, LW - 21, GROUND - 17, -0.9, sword.cd <= 0 ? 0.9 : 0.3);
+      drawHammer(ctx, LW - 22, GROUND - 17, -0.7, hammer.cd <= 0 ? 0.9 : 0.3, 0.8);
     }
 
     ctx.fillStyle = '#b8bcc8';
@@ -1406,7 +1425,7 @@
     if (on && mode === 'over') { if (canRestart()) start(); return; }
     wantDuck = on;
   }
-  function pressSword() {
+  function pressHammer() {
     if (mode === 'demo') { start(); swing(); }
     else if (mode === 'play') swing();
     else if (canRestart()) start();
@@ -1419,7 +1438,7 @@
     e.preventDefault();
     const r = mount.getBoundingClientRect();
     const fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
-    if (mode === 'play' && fx > 0.78) pressSword();
+    if (mode === 'play' && fx > 0.78) pressHammer();
     else if (mode === 'play' && fy > 0.6) { pressDuck(true); try { mount.setPointerCapture(e.pointerId); } catch (_) {} }
     else pressJump();
   });
@@ -1433,19 +1452,23 @@
     const playing = mode === 'play';
     // demo ajal võtab mäng üle ainult tühiku ja X-i — nooled kerivad lehte nagu ikka
     if (e.code === 'Space') { e.preventDefault(); pressJump(); }
-    else if (e.code === 'KeyX') { e.preventDefault(); if (!e.repeat) pressSword(); }
+    else if (e.code === 'KeyX') { e.preventDefault(); if (!e.repeat) pressHammer(); }
     else if (!playing) return;
+    else if (e.code === 'ArrowUp' && e.shiftKey) { e.preventDefault(); keyFaster = true; }    // shift+↑ kiiremini
+    else if (e.code === 'ArrowDown' && e.shiftKey) { e.preventDefault(); keySlower = true; }  // shift+↓ aeglasemalt
     else if (e.code === 'ArrowUp') { e.preventDefault(); pressJump(); }
     else if (e.code === 'ArrowDown') { e.preventDefault(); if (!e.repeat) pressDuck(true); }
-    else if (e.code === 'ArrowRight') { e.preventDefault(); keyFwd = true; }
-    else if (e.code === 'ArrowLeft') { e.preventDefault(); keyBack = true; }
+    else if (e.code === 'ArrowRight') { e.preventDefault(); keyRight = true; }
+    else if (e.code === 'ArrowLeft') { e.preventDefault(); keyLeft = true; }
   });
   window.addEventListener('keyup', e => {
-    if (e.code === 'ArrowDown') wantDuck = false;
-    if (e.code === 'ArrowRight') keyFwd = false;
-    if (e.code === 'ArrowLeft') keyBack = false;
+    if (e.code === 'ArrowUp') keyFaster = false;
+    if (e.code === 'ArrowDown') { wantDuck = false; keySlower = false; }
+    if (e.key === 'Shift') keyFaster = keySlower = false;
+    if (e.code === 'ArrowRight') keyRight = false;
+    if (e.code === 'ArrowLeft') keyLeft = false;
   });
-  window.addEventListener('blur', () => { release(); keyFwd = keyBack = false; });
+  window.addEventListener('blur', () => { release(); keyFaster = keySlower = keyLeft = keyRight = false; });
 
   // ---------- tsükkel (peatub, kui pole nähtav) ----------
   let visible = true, last = performance.now();
