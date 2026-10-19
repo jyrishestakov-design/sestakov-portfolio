@@ -6,7 +6,13 @@ Suured failid (mitu GB) on OK — üleslaadimine käib 50 MB tükkidena, allalaa
 
 R2 tasuta kvoot: 10 GB salvestust/kuus, väljaminev liiklus (allalaadimised) tasuta.
 
-## Paigaldus (ühekordne, ~10 min)
+## Kiire paigaldus (Mac)
+
+Käivita Terminalis `bash ~/Downloads/setup.command` (või topeltklõps). Skript paigaldab vajadusel Node.js-i,
+logib Cloudflare'i sisse, loob R2 hoidla, avaldab workeri, küsib halduse parooli ja avab lõpuks mõlemad haldused.
+Võib korduvalt käivitada (uuendus / parooli muutmine).
+
+## Paigaldus käsitsi (~10 min)
 
 Vajab Node.js-i ja sama Cloudflare'i kontot, kus on `sestakov-cms-auth` worker.
 
