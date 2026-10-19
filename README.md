@@ -14,6 +14,11 @@ Jüri-Illimar Reinberg-Šestakov — portfoolio (operaator · 3D/2D animaator ·
 Terve sait on `index.html`. Uude hostingusse (Cloudflare Pages, Netlify, veebimajutus,
 oma domeen) viimiseks kopeeri fail või osuta host samale repo'le — root, build-käsk puudub.
 
+## Failid ja klienditsoon
+
+- **Avalikud failid**: `/admin` → *Failid* → lae fail üles; ilmub lehe „Failid" sektsiooni. Repo on avalik, seega ainult väikesed ja mitte-salajased failid.
+- **Privaatsed / suured failid**: Cloudflare Worker + R2, vt [`files-worker/README.md`](files-worker/README.md).
+
 ## Staatus
 
 Mustand. Andmed IMDb + EFIS avalikest kirjetest; pealkirjad, krediidid ja tehnilised

@@ -1,0 +1,17 @@
+name = "shesta-failid"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Optional custom domain — uncomment after shesta.eu is on Cloudflare DNS
+# routes = [{ pattern = "failid.shesta.eu", custom_domain = true }]
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "shesta-failid"
+
+[vars]
+SITE_URL = "https://shesta.eu"
+
+# Secrets (set with `npx wrangler secret put NAME`, never commit them):
+#   ADMIN_PASSWORD  – your password for /admin
+#   SESSION_SECRET  – long random string used to sign login cookies

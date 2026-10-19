@@ -483,5 +483,10 @@
       "link": "",
       "note": ""
     }
-  ]
+  ],
+  "files": {
+    "note": "Avalikud failid on allpool vabalt alla laaditavad. Kliendid: privaatsed failid leiad klienditsoonist oma koodi ja parooliga.",
+    "portalUrl": "",
+    "items": []
+  }
 }

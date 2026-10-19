@@ -251,6 +251,33 @@
   .idx-list .u { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .06em; color: var(--ink-dim); }
   @media (max-width: 560px) { .idx-list .u { display: none; } }
 
+  /* ============ FAILID ============ */
+  .files-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0, 22rem); gap: clamp(1.6rem, 4vw, 3rem); align-items: start; }
+  @media (max-width: 760px) { .files-grid { grid-template-columns: 1fr; } }
+  .files-intro { margin: 0 0 1.4rem; color: var(--ink-dim); font-size: .92rem; max-width: 52ch; }
+  .dl-list { border-top: 1px solid var(--line); }
+  .dl-list a {
+    display: grid; grid-template-columns: 2.4rem minmax(0,1fr) auto; gap: .2rem 1rem; align-items: baseline;
+    padding: 1rem 0; border-bottom: 1px solid var(--line); text-decoration: none; transition: padding .15s, color .15s;
+  }
+  .dl-list a:hover { padding-left: .6rem; color: var(--accent); }
+  .dl-list .n { font-family: var(--font-mono); font-size: .72rem; color: var(--muted); }
+  .dl-list .l { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; overflow-wrap: anywhere; }
+  .dl-list .m { grid-column: 2; font-family: var(--font-mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); }
+  .dl-list .g { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; color: var(--accent); white-space: nowrap; }
+  .dl-empty { font-family: var(--font-mono); font-size: .78rem; color: var(--muted); padding: 1rem 0; border-bottom: 1px solid var(--line); margin: 0; }
+  .portal { border: 1px solid var(--line); background: var(--surface); padding: 1.4rem; }
+  .portal .k { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--cool); }
+  .portal h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.45rem; margin: .4rem 0 .5rem; }
+  .portal p { margin: 0 0 1.1rem; color: var(--ink-dim); font-size: .86rem; }
+  .portal form { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .portal input {
+    flex: 1 1 10rem; min-width: 0; font: inherit; font-family: var(--font-mono); font-size: .85rem;
+    color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 2px; padding: .65rem .8rem;
+  }
+  .portal input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .portal button.btn { border: 0; cursor: pointer; }
+
   /* ============ FOOTER ============ */
   footer { border-top: 1px solid var(--line); padding: clamp(3rem, 8vw, 5rem) 0 3rem; }
   .foot-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.6rem; align-items: flex-end; }
@@ -298,6 +325,7 @@
       <a href="#log">Shot Log</a>
       <a href="#reel">Reel</a>
       <a href="#caps">Oskused</a>
+      <a href="#files">Failid</a>
       <a href="#index">Index</a>
     </nav>
     <button class="theme-btn" id="theme" type="button" aria-label="Vaheta teema">Day / Night</button>
@@ -386,6 +414,28 @@
         </div>
       </div>
       <p class="flag" id="capsFlag" style="margin-top:2.5rem" hidden></p>
+    </div>
+  </section>
+
+  <section id="files">
+    <div class="wrap">
+      <div class="sec-head"><h2>Failid</h2><span class="count">Allalaadimine</span></div>
+      <div class="files-grid">
+        <div>
+          <p class="files-intro" id="filesIntro"></p>
+          <div class="dl-list" id="dlList"></div>
+        </div>
+        <aside class="portal" id="portalBox" hidden>
+          <span class="k">● Klienditsoon</span>
+          <h3>Sinu failid</h3>
+          <p>Sisesta kliendikood, mille said minult. Järgmisel lehel küsitakse parooli.</p>
+          <form id="portalForm" autocomplete="off">
+            <input id="portalCode" name="code" placeholder="kliendikood" aria-label="Kliendikood" required
+                   pattern="[a-zA-Z0-9-]{2,40}" autocapitalize="none" spellcheck="false">
+            <button class="btn" type="submit">Ava →</button>
+          </form>
+        </aside>
+      </div>
     </div>
   </section>
 
@@ -682,6 +732,54 @@
       });
     }
 
+    function fmtSize(b) {
+      if (!b) return '';
+      var u = ['B', 'KB', 'MB', 'GB']; var i = 0;
+      while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+      return (i ? b.toFixed(1) : b) + ' ' + u[i];
+    }
+
+    function renderFiles(files) {
+      files = files || {};
+      document.getElementById('filesIntro').textContent = files.note || '';
+      var list = document.getElementById('dlList');
+      list.innerHTML = '';
+      var items = (files.items || []).filter(function (f) { return f && f.file; });
+      if (!items.length) {
+        var empty = document.createElement('p'); empty.className = 'dl-empty';
+        empty.textContent = 'Avalikke faile praegu pole.';
+        list.appendChild(empty);
+      }
+      items.forEach(function (f, i) {
+        var path = String(f.file).replace(/^\//, '');
+        var name = decodeURIComponent(path.split('/').pop());
+        var ext = (name.split('.').pop() || '').toUpperCase();
+        var a = document.createElement('a'); a.href = path; a.setAttribute('download', name);
+        var n = document.createElement('span'); n.className = 'n'; n.textContent = String(i + 1).padStart(2, '0');
+        var l = document.createElement('span'); l.className = 'l'; l.textContent = f.title || name;
+        var g = document.createElement('span'); g.className = 'g'; g.textContent = '↓ ' + ext;
+        var m = document.createElement('span'); m.className = 'm'; m.textContent = f.note || '';
+        a.appendChild(n); a.appendChild(l); a.appendChild(g); a.appendChild(m);
+        list.appendChild(a);
+        // Show file size once known (same-origin HEAD request; silently skipped on failure)
+        fetch(path, { method: 'HEAD' }).then(function (r) {
+          var len = +r.headers.get('content-length');
+          if (r.ok && len) m.textContent = [f.note, fmtSize(len)].filter(Boolean).join(' · ');
+        }).catch(function () {});
+      });
+
+      var box = document.getElementById('portalBox');
+      var portal = (files.portalUrl || '').replace(/\/+$/, '');
+      box.hidden = !portal;
+      if (portal) {
+        document.getElementById('portalForm').onsubmit = function (e) {
+          e.preventDefault();
+          var code = document.getElementById('portalCode').value.trim().toLowerCase();
+          if (code) window.location.href = portal + '/c/' + encodeURIComponent(code);
+        };
+      }
+    }
+
     fetch('content/site.json', { cache: 'no-cache' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
@@ -690,6 +788,7 @@
         renderLog(data.works || []);
         renderReel(settings.reel);
         renderFooter(settings);
+        renderFiles(data.files);
         var notices = settings.draftNotices || {};
         renderFlag(document.getElementById('logFlag'), notices.log);
         renderFlag(document.getElementById('capsFlag'), notices.caps);

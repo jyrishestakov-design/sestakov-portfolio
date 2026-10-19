@@ -92,3 +92,23 @@ collections:
               - { label: "FPS", name: "fps", widget: "string", required: false }
               - { label: "Link (Vimeo/YouTube/muu)", name: "link", widget: "string", required: false }
               - { label: "Märkus (spec-lehe all)", name: "note", widget: "text", required: false }
+          - label: "Failid (allalaadimiseks)"
+            name: "files"
+            widget: "object"
+            hint: "NB! Repo on avalik — siia laetud failid on kõigile nähtavad. Privaatsed ja suured failid käivad klienditsooni kaudu (portaali URL allpool)."
+            fields:
+              - { label: "Sissejuhatus", name: "note", widget: "text", required: false }
+              - label: "Klienditsooni URL"
+                name: "portalUrl"
+                widget: "string"
+                required: false
+                hint: "Cloudflare Workeri aadress, nt https://failid.shesta.eu. Tühjaks jätmine peidab klienditsooni kasti."
+              - label: "Avalikud failid"
+                name: "items"
+                widget: "list"
+                required: false
+                summary: "{{title}}"
+                fields:
+                  - { label: "Nimetus", name: "title", widget: "string" }
+                  - { label: "Fail", name: "file", widget: "file", hint: "Väikesed failid (PDF, pildid, lühiklipid). Kuni ~25 MB." }
+                  - { label: "Märkus", name: "note", widget: "string", required: false }
