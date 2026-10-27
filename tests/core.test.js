@@ -75,3 +75,11 @@ test('textBlocks: lõigud ja lingid', () => {
   ]);
   assert.deepEqual(C.textBlocks(''), []);
 });
+
+test('lehe tekstid on olemas kõigis keeltes', () => {
+  const S = require('../js/i18n-strings.js');
+  for (const l of ['en', 'fi']) {
+    assert.ok(S[l], 'keel ' + l);
+    for (const k of Object.keys(S.et)) assert.ok(S[l][k], l + ': ' + k);
+  }
+});

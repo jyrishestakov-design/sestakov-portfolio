@@ -336,6 +336,20 @@
   #viking-runner:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
   @media (max-width: 720px) { #viking-runner { height: 180px; } }
 
+  /* ============ KEELEVALIK ============ */
+  .tools { display: flex; align-items: center; gap: .6rem; }
+  .langs { display: flex; border: 1px solid var(--line); border-radius: 2px; }
+  .langs button {
+    background: none; border: 0; color: var(--ink-dim); cursor: pointer;
+    font-family: var(--font-mono); font-size: .66rem; letter-spacing: .1em; padding: .35rem .45rem;
+    transition: color .15s;
+  }
+  .langs button + button { border-left: 1px solid var(--line); }
+  .langs button:hover { color: var(--accent); }
+  .langs button[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); }
+  /* Kitsal ekraanil ei mahu ajakood + keelenupud + teemanupp ühte ritta */
+  @media (max-width: 560px) { :root:has(#langs:not([hidden])) .hud { display: none; } }
+
   /* ============ OMANIKU LISATAVAD SEKTSIOONID ============ */
   .text-body { overflow-wrap: anywhere; }
   .text-body p { margin: 0 0 1rem; max-width: 62ch; color: var(--ink-dim); }
@@ -375,7 +389,10 @@
       <div id="tc">00:00:00:00</div>
     </div>
     <nav id="nav"></nav>
-    <button class="theme-btn" id="theme" type="button" aria-label="Vaheta teema">Day / Night</button>
+    <div class="tools">
+      <div class="langs" id="langs" role="group" hidden></div>
+      <button class="theme-btn" id="theme" type="button" aria-label="Vaheta teema">Day / Night</button>
+    </div>
   </div>
 </header>
 
@@ -386,7 +403,7 @@
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <div class="mono" style="margin-bottom:.6rem">Kontakt</div>
+        <div class="mono" style="margin-bottom:.6rem" id="footContact">Kontakt</div>
         <a class="big mail" id="footEmailLink" href="#" style="text-decoration:none"></a>
         <div style="margin-top:.8rem" class="mono">
           <span id="footPhone"></span> · <span id="footLocation"></span>

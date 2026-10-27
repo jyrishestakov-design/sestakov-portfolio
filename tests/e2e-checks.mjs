@@ -86,3 +86,43 @@ export async function task5({ browser, openPage, t, eq, ok, VIEWS }) {
     await p.close();
   });
 }
+
+// ---- Task 6: keeled
+export async function task6({ browser, openPage, t, eq, ok, VIEWS }) {
+  const dark = VIEWS[0];
+  const { readFileSync } = await import('node:fs');
+  const etStatement = JSON.parse(readFileSync(new URL('./fixtures/lang.json', import.meta.url))).et.settings.statement;
+
+  await t('?lang=en: keel, menüü, tõlkimata tekst eesti keeles', async () => {
+    const p = await openPage(browser, dark, { fixture: 'lang.json', query: '?lang=en' });
+    await p.waitForSelector('.langs button');
+    eq(await p.getAttribute('html', 'lang'), 'en', 'html lang');
+    eq(await p.$eval('.langs button[aria-pressed="true"]', (b) => b.textContent), 'EN', 'aktiivne nupp');
+    eq(await p.$eval('#nav a', (a) => a.textContent), 'Log', 'menüü EN');
+    eq(await p.$eval('#log h2', (h) => h.textContent), 'Shot Log EN', 'pealkiri EN');
+    eq(await p.$eval('.hero-foot p', (e) => e.textContent), etStatement, 'tõlkimata → eesti');
+    eq(p.errors, [], 'konsooli vead');
+    await p.close();
+  });
+
+  await t('keelenupp vahetab keele ja URL-i', async () => {
+    const p = await openPage(browser, dark, { fixture: 'lang.json' });
+    await p.waitForSelector('.langs button');
+    eq(await p.getAttribute('html', 'lang'), 'et', 'algus et');
+    await p.click('.langs button:has-text("FI")');
+    eq(await p.evaluate(() => location.search), '?lang=fi', 'URL');
+    eq(await p.getAttribute('html', 'lang'), 'fi', 'html lang');
+    eq(await p.$eval('.hero-foot p', (e) => e.textContent), 'Suomeksi.', 'soome tekst');
+    await p.click('.langs button:has-text("ET")');
+    eq(await p.evaluate(() => location.search), '', 'et → parameeter kaob');
+    await p.close();
+  });
+
+  await t('peidetud keel: nuppu pole, ?lang=fi → et (Review Focus 3)', async () => {
+    const p = await openPage(browser, dark, { fixture: 'lang-nofi.json', query: '?lang=fi' });
+    await p.waitForSelector('.langs button');
+    eq(await p.$$eval('.langs button', (b) => b.map((x) => x.textContent)), ['ET', 'EN'], 'nupud');
+    eq(await p.getAttribute('html', 'lang'), 'et', 'html lang');
+    await p.close();
+  });
+}

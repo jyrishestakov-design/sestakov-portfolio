@@ -710,7 +710,8 @@ window.startViking = function (mount) {
   function loop(now) {
     requestAnimationFrame(loop);
     if (!visible || document.hidden || !ready()) { last = now; return; }
-    const dt = Math.min(3, (now - last) / 16.667);
+    // rAF aeg võib olla vaatleja performance.now()-st varasem → negatiivne samm ja vigane kaader
+    const dt = Math.max(0, Math.min(3, (now - last) / 16.667));
     last = now;
     if (mode === 'over' && now - overAt > IDLE_TO_DEMO) { reset(); mode = 'demo'; }
     update(dt);

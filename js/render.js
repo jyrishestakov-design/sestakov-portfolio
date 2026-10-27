@@ -165,14 +165,19 @@
   }
 
   // ---- renderdajad: (section, data) -> HTMLElement
+  var gameNode = null;   // mäng käivitatakse üks kord; keelevahetusel kasutatakse sama sõlme
   var RENDERERS = {
     game: function (section) {
-      var sec = el('section', 'game-strip');
+      if (gameNode) { gameNode.setAttribute('aria-label', S('gameLabel')); return gameNode; }
+      var sec = gameNode = el('section', 'game-strip');
       sec.id = section.id || 'ride';
       sec.setAttribute('aria-label', S('gameLabel'));
       var mount = el('div'); mount.id = 'viking-runner';
       sec.appendChild(mount);
-      sec._afterInsert = function () { if (window.startViking) window.startViking(mount); };
+      sec._afterInsert = function () {
+        sec._afterInsert = null;
+        if (window.startViking) window.startViking(mount);
+      };
       return sec;
     },
 
@@ -458,6 +463,7 @@
       lightbox.addEventListener('click', function (e) { if (e.target === lightbox) lightbox.close(); });
       document.body.appendChild(lightbox);
     }
+    lightbox.querySelector('button').textContent = S('close');
     lightbox.querySelector('img').src = src;
     lightbox.querySelector('img').alt = caption || '';
     lightbox.querySelector('p').textContent = caption || '';
@@ -568,6 +574,8 @@
   function renderFooter(settings) {
     // E-post on site.json-is tükeldatud (user/domain) ja pannakse kokku alles siin, et
     // lähtekoodist või JSON-ist "@"-mustrit otsiv bot seda ei leiaks.
+    document.getElementById('footContact').textContent = S('contact');
+    document.getElementById('theme').setAttribute('aria-label', S('themeLabel'));
     var link = document.getElementById('footEmailLink');
     var em = settings.contactEmail;
     var email = (em && em.user && em.domain) ? (em.user + '@' + em.domain) : '';
@@ -583,8 +591,38 @@
     });
   }
 
+  // ---- keelevalik
+  function enabledLangs(file) {
+    var et = (file && (file.et || file)) || {};
+    var l = (et.settings && et.settings.languages) || ['et'];
+    return C.LANGS.filter(function (x) { return x === 'et' || l.indexOf(x) >= 0; });
+  }
+
+  function renderLangs(file) {
+    var langs = enabledLangs(file), box = document.getElementById('langs');
+    box.textContent = '';
+    box.hidden = langs.length < 2;
+    box.setAttribute('aria-label', S('langLabel'));
+    langs.forEach(function (l) {
+      var b = el('button', null, l.toUpperCase()); b.type = 'button';
+      b.setAttribute('aria-pressed', l === lang ? 'true' : 'false');
+      b.addEventListener('click', function () {
+        if (l === lang) return;
+        lang = l;
+        try { localStorage.setItem('vf-lang', l); } catch (e) {}
+        var url = new URL(location.href);
+        if (l === 'et') url.searchParams.delete('lang'); else url.searchParams.set('lang', l);
+        history.replaceState(null, '', url.pathname + url.search + url.hash);
+        render(file);
+      });
+      box.appendChild(b);
+    });
+  }
+
   // ---- käivitus
   function render(file) {
+    root.setAttribute('lang', lang);
+    renderLangs(file);
     var data = C.localeData(file, lang);
     var settings = data.settings || {};
     var sections = sectionsOf(data);
@@ -611,7 +649,12 @@
 
   fetch('content/site.json', { cache: 'no-cache' })
     .then(function (r) { return r.json(); })
-    .then(render)
+    .then(function (file) {
+      var stored = null;
+      try { stored = localStorage.getItem('vf-lang'); } catch (e) {}
+      lang = C.pickLang(location.search, stored, enabledLangs(file));
+      render(file);
+    })
     .catch(function (err) {
       console.error('Sisu (content/site.json) laadimine ebaõnnestus:', err);
     });
