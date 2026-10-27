@@ -92,6 +92,29 @@ collections:
               - { label: "FPS", name: "fps", widget: "string", required: false }
               - { label: "Link (Vimeo/YouTube/muu)", name: "link", widget: "string", required: false }
               - { label: "Märkus (spec-lehe all)", name: "note", widget: "text", required: false }
+          - label: "Veebilehed"
+            name: "websites"
+            widget: "object"
+            fields:
+              - { label: "Sissejuhatus", name: "note", widget: "text", required: false }
+              - label: "Lehed"
+                name: "items"
+                widget: "list"
+                required: false
+                summary: "{{title}} — {{url}}"
+                fields:
+                  - { label: "Nimi", name: "title", widget: "string" }
+                  - { label: "Aadress (URL)", name: "url", widget: "string", required: false, hint: "Täielik aadress, nt https://kakerdaja.eu. Tühjaks jätmine näitab „Link tulekul“." }
+                  - label: "Ekraanipilt"
+                    name: "image"
+                    widget: "image"
+                    required: false
+                    hint: "Lehe ülaosa kuvatõmmis (laius ~1600 px, kõrgus/laius ~10:16). Tühjaks jätmine näitab nime ruudustikul."
+                  - { label: "Klient", name: "client", widget: "string", required: false }
+                  - { label: "Tüüp", name: "type", widget: "string", required: false }
+                  - { label: "Aasta", name: "year", widget: "string", required: false }
+                  - { label: "Kirjeldus", name: "description", widget: "text", required: false }
+                  - { label: "Tehnoloogia", name: "stack", widget: "string", required: false, hint: "nt Next.js · Prisma · Netlify" }
           - label: "Failid (allalaadimiseks)"
             name: "files"
             widget: "object"

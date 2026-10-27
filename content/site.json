@@ -488,5 +488,100 @@
     "note": "Avalikud failid on allpool vabalt alla laaditavad. Kliendid: privaatsed failid leiad klienditsoonist oma koodi ja parooliga.",
     "portalUrl": "",
     "items": []
+  },
+  "websites": {
+    "note": "Kodulehed, mille olen kujundanud ja ehitanud koos sisuhaldusega, et omanik saaks sisu ise uuendada.",
+    "items": [
+      {
+        "title": "Pilvepiltnik",
+        "url": "https://pilvepiltnik.eu",
+        "client": "Oma projekt",
+        "type": "Fotograafia ja e-pood",
+        "year": "2026",
+        "description": "Looduses pildistatud pilved, trükitud tellitavatele toodetele. Pilveseeriad, galerii, e-pood ja päringuvorm; kakskeelne (ET/EN).",
+        "stack": "Next.js · Prisma + Turso · Netlify",
+        "image": ""
+      },
+      {
+        "title": "Ösel MC",
+        "url": "https://oselmc.ee",
+        "client": "Saaremaa motoklubi Ösel MC",
+        "type": "Klubi koduleht",
+        "year": "2026",
+        "description": "Motoklubi ja iga-aastase rahvusvahelise motokokkutuleku MOTOTOOBER leht: uudised, kalender, galerii, ajalugu ja liikmete foorum.",
+        "stack": "Next.js · Prisma + Turso · oma admin",
+        "image": ""
+      },
+      {
+        "title": "Kuressaare Kunstikool",
+        "url": "https://www.kuressaarekunstikool.ee",
+        "client": "Kuressaare Kunstikool",
+        "type": "Kooli koduleht",
+        "year": "2026",
+        "description": "Uus kakskeelne leht koos sisuhaldusega: uudised, õpetajad, galerii ja plokkidest kokku pandavad lehed. Vana lehe galeriid toodud üle.",
+        "stack": "Next.js · Prisma + Turso · Netlify",
+        "image": ""
+      },
+      {
+        "title": "Kakerdaja",
+        "url": "https://kakerdaja.eu",
+        "client": "Segarahvatantsurühm Kakerdaja",
+        "type": "Seltsi koduleht",
+        "year": "2026",
+        "description": "Tantsurühma leht: uudised, esinemised, galerii ja liitumisinfo. Vanad postitused 2008. aastast toodud üle blogist.",
+        "stack": "Hugo · Sveltia CMS · Netlify",
+        "image": ""
+      },
+      {
+        "title": "Sandra Jõgeva",
+        "url": "https://sandrajogeva.artcontainer.ee",
+        "client": "Kunstnik Sandra Jõgeva",
+        "type": "Kunstniku portfoolio",
+        "year": "2026",
+        "description": "Kunstniku tööde, näituste ja meediakajastuste portfoolio, mida kunstnik saab ise lihtsa admini kaudu uuendada.",
+        "stack": "Hugo · Sveltia CMS · Netlify",
+        "image": ""
+      },
+      {
+        "title": "Art Container",
+        "url": "https://artcontainer.ee",
+        "client": "Art Container",
+        "type": "Kunstiprojekti arhiiv",
+        "year": "2026",
+        "description": "Vana PHP-saidi päästmine: 233 lehte (ET + EN) toodud originaali välimusega üle toimetatavaks staatiliseks saidiks koos CMS-iga.",
+        "stack": "Hugo · Sveltia CMS · Netlify",
+        "image": ""
+      },
+      {
+        "title": "Mudlum",
+        "url": "https://www.mudlum.ee",
+        "client": "Kirjanik Made Luiga (Mudlum)",
+        "type": "Autori koduleht ja raamatupood",
+        "year": "2026",
+        "description": "Kirjaniku, kriitiku ja esineja leht: raamatud, esinemised, kajastused, uudised ning raamatupood pangalingimaksetega.",
+        "stack": "Next.js · Prisma · Cloudinary",
+        "image": ""
+      },
+      {
+        "title": "Muhu Veinitalu",
+        "url": "https://veinitalu-next.vercel.app",
+        "client": "Muhu Veinitalu",
+        "type": "Turismitalu ja veinipood",
+        "year": "2026",
+        "description": "Veinitalu uus leht broneeringute ja veinipoega: majutus, restoran, degustatsioonid ja Modena maksed.",
+        "stack": "Next.js · Prisma + Turso · Vercel",
+        "image": ""
+      },
+      {
+        "title": "Blender Kool",
+        "url": "",
+        "client": "Õpikeskkond",
+        "type": "3D-õppe platvorm",
+        "year": "2026",
+        "description": "Blenderi õpikeskkond õpilastele: õpetused, videod, õpilaste portfooliod, failid ja sõnumid; sisselogimisega.",
+        "stack": "Next.js · Supabase · NextAuth",
+        "image": ""
+      }
+    ]
   }
 }

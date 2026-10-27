@@ -229,6 +229,36 @@
   .btn:hover { transform: translateX(3px); }
   @media (max-width: 760px) { .reel { grid-template-columns: 1fr; } }
 
+  /* ============ VEEBILEHED ============ */
+  .web-intro { margin: 0 0 1.8rem; color: var(--ink-dim); font-size: .92rem; max-width: 52ch; }
+  .web-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .site { background: var(--bg); padding: clamp(1rem, 2.6vw, 1.6rem); display: flex; flex-direction: column; text-decoration: none; }
+  a.site:hover .site-title { color: var(--accent); }
+  a.site:hover .site-shot { border-color: var(--accent); }
+  .site-shot { border: 1px solid var(--line); background: var(--surface); transition: border-color .15s; }
+  .site-chrome { display: flex; align-items: center; gap: .35rem; padding: .45rem .6rem; border-bottom: 1px solid var(--line); }
+  .site-chrome i { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
+  .site-chrome span { margin-left: .4rem; font-family: var(--font-mono); font-size: .64rem; letter-spacing: .06em; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .site-view { aspect-ratio: 16 / 10; position: relative; overflow: hidden; }
+  .site-view img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .site-view .ph {
+    position: absolute; inset: 0; display: grid; place-items: center; padding: 1rem; text-align: center;
+    background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font-family: var(--font-display); font-weight: 800; font-size: clamp(1.3rem, 3.4vw, 2.1rem); letter-spacing: -.02em; line-height: 1; color: var(--ink-dim);
+  }
+  .site-meta { display: flex; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
+  .site-title { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.15rem, 2.4vw, 1.45rem); line-height: 1.15; color: var(--ink); transition: color .15s; }
+  .site-meta .year { align-self: baseline; }
+  .site .roles { margin-top: .3rem; }
+  .site p { margin: .7rem 0 0; color: var(--ink-dim); font-size: .88rem; line-height: 1.55; }
+  .site-foot { margin-top: auto; padding-top: 1rem; display: flex; justify-content: space-between; gap: .5rem 1rem; flex-wrap: wrap; align-items: baseline; }
+  .site-stack { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .08em; color: var(--muted); }
+  .site-go { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+  .site-go.off { color: var(--muted); }
+  .web-grid::after { content: ""; background: var(--bg); }  /* täidab paaritu arvu korral tühja lahtri */
+  @media (max-width: 760px) { .web-grid { grid-template-columns: 1fr; } .web-grid::after { display: none; } }
+
   /* ============ CAPABILITIES ============ */
   .caps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
   .cap { background: var(--bg); padding: clamp(1.3rem, 3vw, 2rem); }
@@ -324,6 +354,7 @@
     <nav>
       <a href="#log">Shot Log</a>
       <a href="#reel">Reel</a>
+      <a href="#web">Veeb</a>
       <a href="#caps">Oskused</a>
       <a href="#files">Failid</a>
       <a href="#index">Index</a>
@@ -375,6 +406,14 @@
     <div class="wrap">
       <div class="sec-head"><h2>Reel</h2><span class="count">YouTube</span></div>
       <div class="reel" id="reelContainer"></div>
+    </div>
+  </section>
+
+  <section id="web">
+    <div class="wrap">
+      <div class="sec-head"><h2>Veebilehed</h2><span class="count" id="webCount">Disain + arendus</span></div>
+      <p class="web-intro" id="webIntro"></p>
+      <div class="web-grid" id="webGrid"></div>
     </div>
   </section>
 
@@ -712,6 +751,62 @@
       c.appendChild(frame); c.appendChild(right);
     }
 
+    function renderWebsites(websites) {
+      websites = websites || {};
+      var section = document.getElementById('web');
+      var items = (websites.items || []).filter(function (w) { return w && w.title; });
+      section.hidden = !items.length;
+      document.querySelector('nav a[href="#web"]').hidden = !items.length;
+      if (!items.length) return;
+      document.getElementById('webIntro').textContent = websites.note || '';
+      document.getElementById('webCount').textContent = items.length + ' lehte · disain + arendus';
+      var grid = document.getElementById('webGrid');
+      grid.innerHTML = '';
+      items.forEach(function (w) {
+        var host = (w.url || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '');
+        var card = document.createElement(w.url ? 'a' : 'div'); card.className = 'site';
+        if (w.url) { card.href = w.url; card.target = '_blank'; card.rel = 'noopener'; }
+
+        var shot = document.createElement('div'); shot.className = 'site-shot';
+        var chrome = document.createElement('div'); chrome.className = 'site-chrome';
+        chrome.innerHTML = '<i></i><i></i><i></i>';
+        var addr = document.createElement('span'); addr.textContent = host || 'aadress lisamata';
+        chrome.appendChild(addr);
+        var view = document.createElement('div'); view.className = 'site-view';
+        if (w.image) {
+          var img = document.createElement('img'); img.src = w.image; img.alt = w.title; img.loading = 'lazy';
+          view.appendChild(img);
+        } else {
+          var ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = w.title;
+          view.appendChild(ph);
+        }
+        shot.appendChild(chrome); shot.appendChild(view);
+
+        var meta = document.createElement('div'); meta.className = 'site-meta';
+        var left = document.createElement('div');
+        var title = document.createElement('span'); title.className = 'site-title'; title.textContent = w.title;
+        var roles = document.createElement('span'); roles.className = 'roles';
+        roles.textContent = [w.type, w.client].filter(Boolean).join(' · ');
+        left.appendChild(title); left.appendChild(roles);
+        var year = document.createElement('span'); year.className = 'year'; year.textContent = w.year || '';
+        meta.appendChild(left); meta.appendChild(year);
+
+        var foot = document.createElement('div'); foot.className = 'site-foot';
+        var stack = document.createElement('span'); stack.className = 'site-stack'; stack.textContent = w.stack || '';
+        var go = document.createElement('span'); go.className = 'site-go' + (w.url ? '' : ' off');
+        go.textContent = w.url ? 'Ava leht ↗' : 'Link tulekul';
+        foot.appendChild(stack); foot.appendChild(go);
+
+        card.appendChild(shot); card.appendChild(meta);
+        if (w.description) {
+          var p = document.createElement('p'); p.textContent = w.description;
+          card.appendChild(p);
+        }
+        card.appendChild(foot);
+        grid.appendChild(card);
+      });
+    }
+
     function renderFooter(settings) {
       // Email is split into user/domain in content/site.json and only joined here at
       // render time, so a bot that just greps the page source or the raw JSON file for
@@ -787,6 +882,7 @@
         renderHero(settings);
         renderLog(data.works || []);
         renderReel(settings.reel);
+        renderWebsites(data.websites);
         renderFooter(settings);
         renderFiles(data.files);
         var notices = settings.draftNotices || {};
