@@ -10,128 +10,396 @@ site_url: https://jyrishestakov-design.github.io/sestakov-portfolio/
 media_folder: "content/uploads"
 public_folder: "/content/uploads"
 
+# Kolm keelt ühes failis: { "et": {…}, "en": {…}, "fi": {…} }.
+# Tõlkimata väli näidatakse lehel eesti keeles. Pildid, lingid, värvid jms
+# (i18n: duplicate) on kõigis keeltes ühised – neid muudad eesti vahekaardil.
+i18n:
+  structure: single_file
+  locales: [et, en, fi]
+  default_locale: et
+
 collections:
   - name: "site"
     label: "Portfoolio"
+    i18n: true
     editor:
       preview: false
     files:
       - name: "main"
         label: "Sisu"
         file: "content/site.json"
+        i18n: true
         fields:
+          # ---------------- ÜLDINFO ----------------
           - label: "Üldinfo"
             name: "settings"
             widget: "object"
+            i18n: true
             fields:
-              - { label: "Nimi", name: "name", widget: "string" }
+              - { label: "Nimi", name: "name", widget: "string", i18n: duplicate }
               - label: "Rollid"
                 name: "roles"
                 widget: "list"
-                field: { label: "Roll", name: "role", widget: "string" }
-              - { label: "Asukoht", name: "location", widget: "string" }
-              - { label: "Avalause (hero all)", name: "statement", widget: "text" }
+                i18n: true
+                field: { label: "Roll", name: "role", widget: "string", i18n: true }
+              - { label: "Asukoht", name: "location", widget: "string", i18n: true }
+              - { label: "Avalause (hero all)", name: "statement", widget: "text", i18n: true }
               - label: "Kontakt — e-post"
                 name: "contactEmail"
                 widget: "object"
+                i18n: duplicate
                 hint: "Kaheks tükeldatud (enne/pärast @), et boti otsing toorest failist e-posti ei leiaks. Lehel näidatakse neid siiski koos, tavalise mailto-lingina."
                 fields:
-                  - { label: "Enne @ (nt jyri.shestakov)", name: "user", widget: "string" }
-                  - { label: "Domeen (nt gmail.com)", name: "domain", widget: "string" }
-              - { label: "Kontakt — telefon", name: "contactPhone", widget: "string", required: false }
-              - label: "Reel"
+                  - { label: "Enne @ (nt jyri.shestakov)", name: "user", widget: "string", i18n: duplicate }
+                  - { label: "Domeen (nt gmail.com)", name: "domain", widget: "string", i18n: duplicate }
+              - { label: "Kontakt — telefon", name: "contactPhone", widget: "string", required: false, i18n: duplicate }
+              - label: "Keeled lehel"
+                name: "languages"
+                widget: "select"
+                multiple: true
+                i18n: duplicate
+                default: ["et", "en", "fi"]
+                options:
+                  - { label: "Eesti", value: "et" }
+                  - { label: "Inglise", value: "en" }
+                  - { label: "Soome", value: "fi" }
+                hint: "Keeled, mis on lehe päises valikus. Eesti on alati sees. Võta keel välja, kuni tõlge pole valmis."
+              - label: "Vaiketeema"
+                name: "defaultTheme"
+                widget: "select"
+                i18n: duplicate
+                default: "auto"
+                options:
+                  - { label: "Automaatne (külastaja seadme järgi)", value: "auto" }
+                  - { label: "Tume", value: "dark" }
+                  - { label: "Hele", value: "light" }
+
+          # ---------------- SEKTSIOONID ----------------
+          - label: "Sektsioonid (lehe järjekord ja menüü)"
+            name: "sections"
+            widget: "list"
+            i18n: true
+            summary: "{{fields.menuLabel}} {{fields.title}} ({{fields.type}})"
+            hint: "Lohista järjekorra muutmiseks. „Sees“ maha võttes sektsioon peidetakse (andmed jäävad alles). Uue lisamiseks vali tüüp nupu „Lisa“ alt; kustutamiseks eemalda kirje."
+            types:
+              - label: "Minimäng (Viking Rider)"
+                name: "game"
+                widget: "object"
+                fields: &common
+                  - { label: "Sees", name: "enabled", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Ankur (aadressi #osa, ladina tähed)", name: "id", widget: "string", i18n: duplicate, pattern: ['^[a-z0-9-]+$', "Ainult väikesed ladina tähed, numbrid ja sidekriips"] }
+                  - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
+                  - { label: "Väike tekst pealkirja kõrval", name: "countLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true, hint: "Tühjaks jätmine peidab kasti. **Rasvane algus** on lubatud." }
+              - label: "Avaplokk (nimi ja rollid)"
+                name: "hero"
+                widget: "object"
+                fields: *common
+              - label: "Shot Log (tööd)"
+                name: "log"
+                widget: "object"
+                fields: *common
+              - label: "Reel (video)"
                 name: "reel"
                 widget: "object"
                 fields:
-                  - { label: "Pealkiri", name: "title", widget: "string" }
-                  - { label: "Märkus", name: "note", widget: "text" }
-                  - label: "Video embed URL"
-                    name: "embedUrl"
-                    widget: "string"
-                    required: false
-                    hint: "Vimeo/YouTube EMBED-link (nt https://player.vimeo.com/video/XXXXXXX või https://www.youtube.com/embed/XXXXXXXXXXX). Tühjaks jätmine näitab täitmata plaatsi."
-                  - label: "Kaanepilt (kui video pole veel lisatud)"
-                    name: "image"
-                    widget: "image"
-                    required: false
-                    hint: "Kuvatakse ainult siis, kui Video embed URL on tühi."
-              - label: "Mustandi märkused"
-                name: "draftNotices"
+                  - { label: "Sees", name: "enabled", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Ankur (aadressi #osa, ladina tähed)", name: "id", widget: "string", i18n: duplicate }
+                  - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
+                  - { label: "Väike tekst pealkirja kõrval", name: "countLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
+                  - { label: "Video pealkiri", name: "heading", widget: "string", required: false, i18n: true }
+                  - { label: "Märkus", name: "note", widget: "text", required: false, i18n: true }
+                  - { label: "Video embed URL", name: "embedUrl", widget: "string", required: false, i18n: duplicate, hint: "Vimeo/YouTube EMBED-link (nt https://player.vimeo.com/video/XXXXXXX või https://www.youtube.com/embed/XXXXXXXXXXX)." }
+                  - { label: "Kaanepilt (kui videot pole)", name: "image", widget: "image", required: false, i18n: duplicate }
+              - label: "Veebilehed"
+                name: "web"
                 widget: "object"
-                hint: "Kollane hoiatuskast iga sektsiooni all. Tühjaks jätmine peidab kasti."
+                fields: *common
+              - label: "Oskused"
+                name: "caps"
+                widget: "object"
                 fields:
-                  - { label: "Shot Log märkus", name: "log", widget: "text", required: false }
-                  - { label: "Oskuste märkus", name: "caps", widget: "text", required: false }
-                  - { label: "Index märkus", name: "index", widget: "text", required: false }
+                  - { label: "Sees", name: "enabled", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Ankur (aadressi #osa, ladina tähed)", name: "id", widget: "string", i18n: duplicate }
+                  - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
+                  - { label: "Väike tekst pealkirja kõrval", name: "countLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
+                  - label: "Plokid"
+                    name: "items"
+                    widget: "list"
+                    i18n: true
+                    summary: "{{fields.title}}"
+                    fields:
+                      - { label: "Väike silt (nt 01 — 3D)", name: "kicker", widget: "string", required: false, i18n: true }
+                      - { label: "Pealkiri", name: "title", widget: "string", i18n: true }
+                      - label: "Read"
+                        name: "points"
+                        widget: "list"
+                        i18n: true
+                        field: { label: "Rida", name: "point", widget: "string", i18n: true }
+              - label: "Failid"
+                name: "files"
+                widget: "object"
+                fields: *common
+              - label: "Index (lingid)"
+                name: "index"
+                widget: "object"
+                fields: &linksFields
+                  - { label: "Sees", name: "enabled", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Ankur (aadressi #osa, ladina tähed)", name: "id", widget: "string", i18n: duplicate }
+                  - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
+                  - { label: "Väike tekst pealkirja kõrval", name: "countLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
+                  - label: "Lingid"
+                    name: "links"
+                    widget: "list"
+                    i18n: true
+                    summary: "{{fields.label}}"
+                    fields:
+                      - { label: "Tekst", name: "label", widget: "string", i18n: true }
+                      - { label: "Aadress (URL)", name: "url", widget: "string", i18n: duplicate }
+                      - { label: "Lühike aadress paremal (valikuline)", name: "display", widget: "string", required: false, i18n: duplicate }
+              - label: "Tekst"
+                name: "text"
+                widget: "object"
+                fields:
+                  - { label: "Sees", name: "enabled", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Ankur (aadressi #osa, ladina tähed)", name: "id", widget: "string", i18n: duplicate }
+                  - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
+                  - { label: "Väike tekst pealkirja kõrval", name: "countLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
+                  - { label: "Tekst", name: "body", widget: "text", i18n: true, hint: "Tühi rida teeb uue lõigu. Aadressid (https://…) muutuvad ise linkideks." }
+              - label: "Tekst + pilt"
+                name: "textImage"
+                widget: "object"
+                fields:
+                  - { label: "Sees", name: "enabled", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Ankur (aadressi #osa, ladina tähed)", name: "id", widget: "string", i18n: duplicate }
+                  - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
+                  - { label: "Väike tekst pealkirja kõrval", name: "countLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
+                  - { label: "Tekst", name: "body", widget: "text", i18n: true, hint: "Tühi rida teeb uue lõigu. Aadressid muutuvad ise linkideks." }
+                  - { label: "Pilt", name: "image", widget: "image", i18n: duplicate }
+                  - label: "Pildi pool"
+                    name: "imageSide"
+                    widget: "select"
+                    i18n: duplicate
+                    default: "right"
+                    options: [{ label: "Paremal", value: "right" }, { label: "Vasakul", value: "left" }]
+              - label: "Pildigalerii"
+                name: "gallery"
+                widget: "object"
+                fields:
+                  - { label: "Sees", name: "enabled", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Ankur (aadressi #osa, ladina tähed)", name: "id", widget: "string", i18n: duplicate }
+                  - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
+                  - { label: "Väike tekst pealkirja kõrval", name: "countLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
+                  - label: "Pildid"
+                    name: "images"
+                    widget: "list"
+                    i18n: true
+                    summary: "{{fields.caption}}"
+                    fields:
+                      - { label: "Pilt", name: "image", widget: "image", i18n: duplicate }
+                      - { label: "Pildiallkiri", name: "caption", widget: "string", required: false, i18n: true }
+              - label: "Video"
+                name: "video"
+                widget: "object"
+                fields:
+                  - { label: "Sees", name: "enabled", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Ankur (aadressi #osa, ladina tähed)", name: "id", widget: "string", i18n: duplicate }
+                  - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
+                  - { label: "Väike tekst pealkirja kõrval", name: "countLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
+                  - { label: "Video embed URL", name: "embedUrl", widget: "string", i18n: duplicate, hint: "nt https://www.youtube.com/embed/XXXXXXXXXXX või https://player.vimeo.com/video/XXXXXXX" }
+                  - { label: "Allkiri", name: "caption", widget: "string", required: false, i18n: true }
+              - label: "Lingid"
+                name: "links"
+                widget: "object"
+                fields: *linksFields
+
+          # ---------------- KUJUNDUS ----------------
+          - label: "Kujundus"
+            name: "design"
+            widget: "object"
+            i18n: duplicate
+            hint: "Tühi väli = praegune kujundus. Muuda ainult seda, mida tahad muuta."
+            fields:
+              - label: "Värvid — tume teema"
+                name: "dark"
+                widget: "object"
+                i18n: duplicate
+                collapsed: true
+                fields: &colors
+                  - { label: "Taust", name: "bg", widget: "color", required: false, i18n: duplicate }
+                  - { label: "Pinnad (kastid)", name: "surface", widget: "color", required: false, i18n: duplicate }
+                  - { label: "Jooned", name: "line", widget: "color", required: false, i18n: duplicate }
+                  - { label: "Tekst", name: "ink", widget: "color", required: false, i18n: duplicate }
+                  - { label: "Teisene tekst", name: "inkDim", widget: "color", required: false, i18n: duplicate }
+                  - { label: "Rõhuvärv (nupud, lingid)", name: "accent", widget: "color", required: false, i18n: duplicate }
+              - label: "Värvid — hele teema"
+                name: "light"
+                widget: "object"
+                i18n: duplicate
+                collapsed: true
+                fields: *colors
+              - label: "Fondid"
+                name: "fonts"
+                widget: "object"
+                i18n: duplicate
+                collapsed: true
+                fields:
+                  - label: "Pealkirjade font"
+                    name: "heading"
+                    widget: "select"
+                    required: false
+                    i18n: duplicate
+                    options: &fonts
+                      - "Bricolage Grotesque"
+                      - "IBM Plex Sans"
+                      - "Inter"
+                      - "Manrope"
+                      - "Space Grotesk"
+                      - "DM Sans"
+                      - "Work Sans"
+                      - "Archivo"
+                      - "Syne"
+                      - "Fraunces"
+                      - "Playfair Display"
+                      - "Cormorant Garamond"
+                      - "Libre Baskerville"
+                      - "Source Serif 4"
+                  - { label: "Teksti font", name: "body", widget: "select", required: false, i18n: duplicate, options: *fonts }
+                  - { label: "Põhiteksti suurus (px)", name: "baseSize", widget: "number", value_type: "int", min: 14, max: 20, required: false, i18n: duplicate, hint: "Vaikimisi 16" }
+              - label: "Efektid"
+                name: "effects"
+                widget: "object"
+                i18n: duplicate
+                collapsed: true
+                fields:
+                  - { label: "Filmiteralisus (0 = väljas)", name: "grain", widget: "number", value_type: "int", min: 0, max: 100, required: false, i18n: duplicate, hint: "Vaikimisi 50" }
+                  - { label: "Näita REC-tuld", name: "showRec", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Näita ajakoodi", name: "showTimecode", widget: "boolean", default: true, i18n: duplicate }
+              - label: "Taustapilt"
+                name: "background"
+                widget: "object"
+                i18n: duplicate
+                collapsed: true
+                fields:
+                  - { label: "Pilt", name: "image", widget: "image", required: false, i18n: duplicate }
+                  - { label: "Nähtavus (%)", name: "opacity", widget: "number", value_type: "int", min: 0, max: 100, required: false, i18n: duplicate, hint: "Vaikimisi 30" }
+                  - { label: "Hägusus (px)", name: "blur", widget: "number", value_type: "int", min: 0, max: 40, required: false, i18n: duplicate }
+                  - { label: "Tumendus (%)", name: "shade", widget: "number", value_type: "int", min: 0, max: 100, required: false, i18n: duplicate }
+              - label: "Paigutus"
+                name: "layout"
+                widget: "object"
+                i18n: duplicate
+                collapsed: true
+                fields:
+                  - { label: "Sisu maksimaalne laius (px)", name: "maxWidth", widget: "number", value_type: "int", min: 960, max: 1600, required: false, i18n: duplicate, hint: "Vaikimisi 1180" }
+                  - label: "Sektsioonide vahed"
+                    name: "spacing"
+                    widget: "select"
+                    required: false
+                    i18n: duplicate
+                    options: [{ label: "Tihe", value: "tight" }, { label: "Tavaline", value: "normal" }, { label: "Õhuline", value: "airy" }]
+                  - label: "Veebilehtede kaartide veerge"
+                    name: "webColumns"
+                    widget: "select"
+                    required: false
+                    i18n: duplicate
+                    options: [{ label: "1", value: 1 }, { label: "2 (vaikimisi)", value: 2 }, { label: "3", value: 3 }]
+
+          # ---------------- TÖÖD ----------------
           - label: "Tööd (Shot Log)"
             name: "works"
             widget: "list"
-            summary: "{{year}} — {{title}}"
+            i18n: true
+            summary: "{{fields.year}} — {{fields.title}}"
             fields:
-              - { label: "Täitmata koht (placeholder)", name: "todo", widget: "boolean", default: false }
-              - label: "Kaader (pilt, valikuline)"
-                name: "image"
-                widget: "image"
-                required: false
-                hint: "Tühjaks jätmine näitab värviriba test-kaadrit."
-              - { label: "Pealkiri", name: "title", widget: "string" }
-              - { label: "Originaalpealkiri / EN (valikuline)", name: "titleEn", widget: "string", required: false }
-              - { label: "Rollid (rea all, väike tekst)", name: "roles", widget: "string" }
-              - { label: "Aasta", name: "year", widget: "string" }
-              - { label: "Roll", name: "role", widget: "string", required: false }
-              - { label: "Tüüp", name: "type", widget: "string", required: false }
-              - { label: "Kestus", name: "duration", widget: "string", required: false }
-              - { label: "Tööriistad", name: "tools", widget: "string", required: false }
-              - { label: "Tootja / klient", name: "producer", widget: "string", required: false }
-              - { label: "Režii", name: "director", widget: "string", required: false }
-              - { label: "Operaator", name: "cinematographer", widget: "string", required: false }
-              - { label: "Allikas", name: "source", widget: "string", required: false }
-              - { label: "Formaat", name: "format", widget: "string", required: false }
-              - { label: "Kaamera", name: "camera", widget: "string", required: false }
-              - { label: "Objektiiv", name: "lens", widget: "string", required: false }
-              - { label: "FPS", name: "fps", widget: "string", required: false }
-              - { label: "Link (Vimeo/YouTube/muu)", name: "link", widget: "string", required: false }
-              - { label: "Märkus (spec-lehe all)", name: "note", widget: "text", required: false }
+              - { label: "Täitmata koht (placeholder)", name: "todo", widget: "boolean", default: false, i18n: duplicate }
+              - { label: "Kaader (pilt, valikuline)", name: "image", widget: "image", required: false, i18n: duplicate, hint: "Tühjaks jätmine näitab värviriba test-kaadrit." }
+              - { label: "Pealkiri", name: "title", widget: "string", i18n: duplicate }
+              - { label: "Originaalpealkiri / EN (valikuline)", name: "titleEn", widget: "string", required: false, i18n: duplicate }
+              - { label: "Rollid (rea all, väike tekst)", name: "roles", widget: "string", i18n: true }
+              - { label: "Aasta", name: "year", widget: "string", i18n: duplicate }
+              - { label: "Roll", name: "role", widget: "string", required: false, i18n: true }
+              - { label: "Tüüp", name: "type", widget: "string", required: false, i18n: true }
+              - { label: "Kestus", name: "duration", widget: "string", required: false, i18n: true }
+              - { label: "Tööriistad", name: "tools", widget: "string", required: false, i18n: duplicate }
+              - { label: "Tootja / klient", name: "producer", widget: "string", required: false, i18n: duplicate }
+              - { label: "Režii", name: "director", widget: "string", required: false, i18n: duplicate }
+              - { label: "Operaator", name: "cinematographer", widget: "string", required: false, i18n: duplicate }
+              - { label: "Allikas", name: "source", widget: "string", required: false, i18n: true }
+              - { label: "Formaat", name: "format", widget: "string", required: false, i18n: duplicate }
+              - { label: "Kaamera", name: "camera", widget: "string", required: false, i18n: duplicate }
+              - { label: "Objektiiv", name: "lens", widget: "string", required: false, i18n: duplicate }
+              - { label: "FPS", name: "fps", widget: "string", required: false, i18n: duplicate }
+              - { label: "Link (Vimeo/YouTube/muu)", name: "link", widget: "string", required: false, i18n: duplicate }
+              - { label: "Märkus (spec-lehe all)", name: "note", widget: "text", required: false, i18n: true }
+
+          # ---------------- VEEBILEHED ----------------
           - label: "Veebilehed"
             name: "websites"
             widget: "object"
+            i18n: true
             fields:
-              - { label: "Sissejuhatus", name: "note", widget: "text", required: false }
+              - { label: "Sissejuhatus", name: "note", widget: "text", required: false, i18n: true }
               - label: "Lehed"
                 name: "items"
                 widget: "list"
                 required: false
-                summary: "{{title}} — {{url}}"
+                i18n: true
+                summary: "{{fields.title}} — {{fields.url}}"
                 fields:
-                  - { label: "Nimi", name: "title", widget: "string" }
-                  - { label: "Aadress (URL)", name: "url", widget: "string", required: false, hint: "Täielik aadress, nt https://kakerdaja.eu. Tühjaks jätmine näitab „Link tulekul“." }
-                  - label: "Ekraanipilt"
-                    name: "image"
-                    widget: "image"
-                    required: false
-                    hint: "Lehe ülaosa kuvatõmmis (laius ~1600 px, kõrgus/laius ~10:16). Tühjaks jätmine näitab nime ruudustikul."
-                  - { label: "Klient", name: "client", widget: "string", required: false }
-                  - { label: "Tüüp", name: "type", widget: "string", required: false }
-                  - { label: "Aasta", name: "year", widget: "string", required: false }
-                  - { label: "Kirjeldus", name: "description", widget: "text", required: false }
-                  - { label: "Tehnoloogia", name: "stack", widget: "string", required: false, hint: "nt Next.js · Prisma · Netlify" }
+                  - { label: "Nimi", name: "title", widget: "string", i18n: duplicate }
+                  - { label: "Aadress (URL)", name: "url", widget: "string", required: false, i18n: duplicate, hint: "Täielik aadress, nt https://kakerdaja.eu. Tühjaks jätmine näitab „Link tulekul“." }
+                  - { label: "Ekraanipilt", name: "image", widget: "image", required: false, i18n: duplicate, hint: "Lehe ülaosa kuvatõmmis (laius ~1600 px, kõrgus/laius ~10:16). Tühjaks jätmine näitab nime ruudustikul." }
+                  - { label: "Klient", name: "client", widget: "string", required: false, i18n: true }
+                  - { label: "Tüüp", name: "type", widget: "string", required: false, i18n: true }
+                  - { label: "Aasta", name: "year", widget: "string", required: false, i18n: duplicate }
+                  - { label: "Kirjeldus", name: "description", widget: "text", required: false, i18n: true }
+                  - { label: "Tehnoloogia", name: "stack", widget: "string", required: false, i18n: duplicate, hint: "nt Next.js · Prisma · Netlify" }
+
+          # ---------------- FAILID ----------------
           - label: "Failid (allalaadimiseks)"
             name: "files"
             widget: "object"
+            i18n: true
             hint: "NB! Repo on avalik — siia laetud failid on kõigile nähtavad. Privaatsed ja suured failid käivad klienditsooni kaudu (portaali URL allpool)."
             fields:
-              - { label: "Sissejuhatus", name: "note", widget: "text", required: false }
+              - { label: "Sissejuhatus", name: "note", widget: "text", required: false, i18n: true }
               - label: "Klienditsooni URL"
                 name: "portalUrl"
                 widget: "string"
                 required: false
+                i18n: duplicate
                 hint: "Cloudflare Workeri aadress, nt https://failid.shesta.eu. Tühjaks jätmine peidab klienditsooni kasti."
               - label: "Avalikud failid"
                 name: "items"
                 widget: "list"
                 required: false
-                summary: "{{title}}"
+                i18n: true
+                summary: "{{fields.title}}"
                 fields:
-                  - { label: "Nimetus", name: "title", widget: "string" }
-                  - { label: "Fail", name: "file", widget: "file", hint: "Väikesed failid (PDF, pildid, lühiklipid). Kuni ~25 MB." }
-                  - { label: "Märkus", name: "note", widget: "string", required: false }
+                  - { label: "Nimetus", name: "title", widget: "string", i18n: true }
+                  - { label: "Fail", name: "file", widget: "file", i18n: duplicate, hint: "Väikesed failid (PDF, pildid, lühiklipid). Kuni ~25 MB." }
+                  - { label: "Märkus", name: "note", widget: "string", required: false, i18n: true }
