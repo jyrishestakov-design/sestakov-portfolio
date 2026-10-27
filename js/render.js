@@ -22,6 +22,7 @@
 
   // ---- teema, kuupäev, ajakood, teralisus (muutmata käitumine)
   var root = document.documentElement;
+  var grainTimer = null;
   (function () {
     var btn = document.getElementById('theme');
     try { var s = localStorage.getItem('vf-theme'); if (s) root.setAttribute('data-theme', s); } catch (e) {}
@@ -71,7 +72,7 @@
     }
     size(); paint();
     addEventListener('resize', function () { size(); paint(); });
-    if (!reduce) setInterval(paint, 90);
+    if (!reduce) grainTimer = setInterval(paint, 90);
   })();
 
   // ---- sektsiooni raam
@@ -362,8 +363,154 @@
       s.wrap.appendChild(linkList(section.links));
       s.wrap.appendChild(flag(section.notice, true));
       return s.sec;
+    },
+
+    // ---- omaniku lisatavad tüübid
+    text: function (section) {
+      var s = shell(section);
+      s.wrap.appendChild(secHead(section));
+      s.wrap.appendChild(textBody(section.body));
+      s.wrap.appendChild(flag(section.notice, true));
+      return s.sec;
+    },
+
+    textImage: function (section) {
+      var s = shell(section);
+      s.wrap.appendChild(secHead(section));
+      var ti = el('div', 'ti' + (section.imageSide === 'left' ? ' ti--left' : ''));
+      ti.appendChild(textBody(section.body));
+      if (section.image) {
+        var img = el('img'); img.src = section.image; img.alt = section.title || ''; img.loading = 'lazy';
+        ti.appendChild(img);
+      }
+      s.wrap.appendChild(ti);
+      s.wrap.appendChild(flag(section.notice, true));
+      return s.sec;
+    },
+
+    gallery: function (section) {
+      var s = shell(section);
+      s.wrap.appendChild(secHead(section));
+      var gal = el('div', 'gal');
+      (section.images || []).forEach(function (g) {
+        if (!g || !g.image) return;
+        var b = el('button'); b.type = 'button';
+        var img = el('img'); img.src = g.image; img.alt = g.caption || section.title || ''; img.loading = 'lazy';
+        b.appendChild(img);
+        if (g.caption) b.appendChild(el('span', 'cap-txt', g.caption));
+        b.addEventListener('click', function () { openLightbox(g.image, g.caption); });
+        gal.appendChild(b);
+      });
+      s.wrap.appendChild(gal);
+      s.wrap.appendChild(flag(section.notice, true));
+      return s.sec;
+    },
+
+    video: function (section) {
+      var s = shell(section);
+      s.wrap.appendChild(secHead(section));
+      var frame = el('div', 'frame frame--live');
+      if (section.embedUrl) {
+        var iframe = el('iframe');
+        iframe.src = section.embedUrl; iframe.title = section.caption || section.title || 'Video';
+        iframe.allow = 'autoplay; fullscreen; picture-in-picture';
+        iframe.loading = 'lazy';
+        iframe.style.cssText = 'width:100%;height:100%;border:0;display:block';
+        frame.appendChild(iframe);
+      }
+      s.wrap.appendChild(frame);
+      if (section.caption) s.wrap.appendChild(el('p', 'video-cap', section.caption));
+      s.wrap.appendChild(flag(section.notice, true));
+      return s.sec;
+    },
+
+    links: function (section) {
+      return RENDERERS.index(section);
     }
   };
+
+  function textBody(body) {
+    var box = el('div', 'text-body');
+    C.textBlocks(body).forEach(function (parts) {
+      var p = el('p');
+      parts.forEach(function (part) {
+        if (part.t === 'link') {
+          var a = el('a', null, part.v); a.href = part.v; a.target = '_blank'; a.rel = 'noopener';
+          p.appendChild(a);
+        } else {
+          p.appendChild(document.createTextNode(part.v));
+        }
+      });
+      box.appendChild(p);
+    });
+    return box;
+  }
+
+  var lightbox = null;
+  function openLightbox(src, caption) {
+    if (!lightbox) {
+      lightbox = el('dialog', 'lightbox');
+      lightbox.appendChild(el('img'));
+      lightbox.appendChild(el('p'));
+      var close = el('button', 'theme-btn', S('close')); close.type = 'button';
+      close.addEventListener('click', function () { lightbox.close(); });
+      lightbox.appendChild(close);
+      lightbox.addEventListener('click', function (e) { if (e.target === lightbox) lightbox.close(); });
+      document.body.appendChild(lightbox);
+    }
+    lightbox.querySelector('img').src = src;
+    lightbox.querySelector('img').alt = caption || '';
+    lightbox.querySelector('p').textContent = caption || '';
+    lightbox.showModal();
+  }
+
+  // ---- kujundus, taust, efektid
+  function applyDesign(design, settings) {
+    design = design || {};
+    var style = document.getElementById('design-css');
+    if (!style) { style = el('style'); style.id = 'design-css'; document.head.appendChild(style); }
+    style.textContent = C.designToCss(design);
+
+    var url = C.fontsUrl(design), link = document.getElementById('design-fonts');
+    if (url) {
+      if (!link) { link = el('link'); link.id = 'design-fonts'; link.rel = 'stylesheet'; document.head.appendChild(link); }
+      if (link.href !== url) link.href = url;
+    } else if (link) {
+      link.remove();
+    }
+
+    var fx = design.effects || {}, grain = document.getElementById('grain');
+    if (fx.grain === 0 || fx.grain === '0') {
+      grain.style.display = 'none';
+      if (grainTimer) { clearInterval(grainTimer); grainTimer = null; }
+    } else if (fx.grain !== undefined && fx.grain !== null && fx.grain !== '') {
+      grain.style.opacity = String(Number(fx.grain) / 1000);
+    }
+    document.querySelector('.rec').style.display = fx.showRec === false ? 'none' : '';
+    document.getElementById('tc').style.display = fx.showTimecode === false ? 'none' : '';
+
+    var bg = design.background || {}, bgEl = document.getElementById('bgimg');
+    if (bg.image) {
+      if (!bgEl) { bgEl = el('div'); bgEl.id = 'bgimg'; bgEl.setAttribute('aria-hidden', 'true'); document.body.insertBefore(bgEl, document.body.firstChild); }
+      bgEl.style.backgroundImage = 'url("' + String(bg.image).replace(/"/g, '%22') + '")';
+      bgEl.style.opacity = String(num(bg.opacity, 30) / 100);
+      bgEl.style.filter = 'blur(' + num(bg.blur, 0) + 'px)';
+      bgEl.style.setProperty('--shade', String(num(bg.shade, 0) / 100));
+    } else if (bgEl) {
+      bgEl.remove();
+    }
+
+    // Vaiketeema kehtib ainult siis, kui külastaja pole ise teemat valinud
+    var stored = null;
+    try { stored = localStorage.getItem('vf-theme'); } catch (e) {}
+    if (!stored) {
+      var dt = settings && settings.defaultTheme;
+      if (dt === 'dark' || dt === 'light') root.setAttribute('data-theme', dt);
+      else root.removeAttribute('data-theme');
+    }
+  }
+
+  function num(v, def) { var n = Number(v); return v === '' || v === null || v === undefined || isNaN(n) ? def : n; }
 
   function linkList(links) {
     var list = el('div', 'idx-list');
@@ -456,6 +603,7 @@
     after.forEach(function (f) { f(); });
     renderNav(sections);
     renderFooter(settings);
+    applyDesign(data.design, settings);
   }
 
   document.getElementById('today').textContent =

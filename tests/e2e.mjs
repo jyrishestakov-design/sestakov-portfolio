@@ -79,8 +79,10 @@ async function check(browser) {
   };
   const eq = (a, b, msg) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`${msg}: ${JSON.stringify(a)} ≠ ${JSON.stringify(b)}`); };
   const ok = (c, msg) => { if (!c) throw new Error(msg); };
-  const checks = (await import('./e2e-checks.mjs')).default;
-  await checks({ browser, openPage, freeze, t, eq, ok, VIEWS });
+  const mod = await import('./e2e-checks.mjs');
+  const ctx = { browser, openPage, freeze, t, eq, ok, VIEWS };
+  await mod.default(ctx);
+  for (const [k, fn] of Object.entries(mod)) if (k !== 'default') await fn(ctx);
   results.forEach(([s, n]) => console.log(s, n));
   const failed = results.filter((r) => r[0] === 'FAIL').length;
   console.log(`# pass ${results.length - failed}\n# fail ${failed}`);
