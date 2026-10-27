@@ -321,7 +321,8 @@
       if (!items.length) list.appendChild(el('p', 'dl-empty', S('noFiles')));
       items.forEach(function (f, i) {
         var p = String(f.file).replace(/^\//, '');
-        var name = decodeURIComponent(p.split('/').pop());
+        var name = p.split('/').pop();
+        try { name = decodeURIComponent(name); } catch (e) {}
         var ext = (name.split('.').pop() || '').toUpperCase();
         var a = el('a'); a.href = p; a.setAttribute('download', name);
         var m = el('span', 'm', f.note || '');
@@ -633,7 +634,12 @@
       if (!section || section.enabled === false) return;
       var fn = RENDERERS[section.type];
       if (!fn) return;
-      var node = fn(section, data);
+      var node;
+      // Üks vigane sektsioon ei tohi peatada ülejäänud lehte
+      try { node = fn(section, data); } catch (err) {
+        console.warn('Sektsioon "' + (section.id || section.type) + '" jäi vahele:', err);
+        return;
+      }
       if (!node) return;
       main.appendChild(node);
       if (node._afterInsert) after.push(node._afterInsert);
@@ -648,14 +654,19 @@
     new Date().toLocaleDateString('et-EE', { year: 'numeric', month: 'long', day: 'numeric' });
 
   fetch('content/site.json', { cache: 'no-cache' })
-    .then(function (r) { return r.json(); })
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .catch(function (err) {
+      // Sisu puudub → näita vaikimisi raami (minimäng, avaplokk), mitte tühja lehte
+      console.error('Sisu (content/site.json) laadimine ebaõnnestus:', err);
+      return {};
+    })
     .then(function (file) {
       var stored = null;
       try { stored = localStorage.getItem('vf-lang'); } catch (e) {}
       lang = C.pickLang(location.search, stored, enabledLangs(file));
       render(file);
-    })
-    .catch(function (err) {
-      console.error('Sisu (content/site.json) laadimine ebaõnnestus:', err);
     });
 })();

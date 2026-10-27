@@ -23,11 +23,19 @@
     if (Array.isArray(base)) {
       if (!Array.isArray(over)) return base;
       // id-ga kirjed (sektsioonid) seotakse id järgi, et ümberjärjestamine ei segaks tõlkeid
-      var byId = {};
-      over.forEach(function (o) { if (isObj(o) && !isEmpty(o.id)) byId[o.id] = o; });
+      // Korduva id puhul saab n-s baaskirje n-nda sama id-ga tõlke.
+      var byId = {}, used = {};
+      over.forEach(function (o) {
+        if (isObj(o) && !isEmpty(o.id)) (byId[o.id] = byId[o.id] || []).push(o);
+      });
       return base.map(function (b, i) {
-        if (isObj(b) && !isEmpty(b.id)) return mergeLocale(b, byId[b.id] || (isObj(over[i]) && isEmpty(over[i].id) ? over[i] : undefined));
-        return mergeLocale(b, over[i]);
+        if (!isObj(b) || isEmpty(b.id)) return mergeLocale(b, over[i]);
+        var n = used[b.id] = (used[b.id] || 0) + 1;
+        var match = (byId[b.id] || [])[n - 1];
+        if (!match && isObj(over[i]) && isEmpty(over[i].id)) match = over[i];
+        var m = mergeLocale(b, match);
+        if ('type' in b) m.type = b.type;   // tüüp tuleb alati eesti keelest
+        return m;
       });
     }
     if (isObj(base)) {

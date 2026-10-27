@@ -40,10 +40,11 @@ collections:
               - label: "Rollid"
                 name: "roles"
                 widget: "list"
+                required: false
                 i18n: true
-                field: { label: "Roll", name: "role", widget: "string", i18n: true }
-              - { label: "Asukoht", name: "location", widget: "string", i18n: true }
-              - { label: "Avalause (hero all)", name: "statement", widget: "text", i18n: true }
+                field: { label: "Roll", name: "role", widget: "string", required: false, i18n: true }
+              - { label: "Asukoht", name: "location", widget: "string", required: false, i18n: true }
+              - { label: "Avalause (hero all)", name: "statement", widget: "text", required: false, i18n: true }
               - label: "Kontakt — e-post"
                 name: "contactEmail"
                 widget: "object"
@@ -134,16 +135,18 @@ collections:
                   - label: "Plokid"
                     name: "items"
                     widget: "list"
+                    required: false
                     i18n: true
                     summary: "{{fields.title}}"
                     fields:
                       - { label: "Väike silt (nt 01 — 3D)", name: "kicker", widget: "string", required: false, i18n: true }
-                      - { label: "Pealkiri", name: "title", widget: "string", i18n: true }
+                      - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
                       - label: "Read"
                         name: "points"
                         widget: "list"
+                        required: false
                         i18n: true
-                        field: { label: "Rida", name: "point", widget: "string", i18n: true }
+                        field: { label: "Rida", name: "point", widget: "string", required: false, i18n: true }
               - label: "Failid"
                 name: "files"
                 widget: "object"
@@ -162,10 +165,11 @@ collections:
                   - label: "Lingid"
                     name: "links"
                     widget: "list"
+                    required: false
                     i18n: true
                     summary: "{{fields.label}}"
                     fields:
-                      - { label: "Tekst", name: "label", widget: "string", i18n: true }
+                      - { label: "Tekst", name: "label", widget: "string", required: false, i18n: true }
                       - { label: "Aadress (URL)", name: "url", widget: "string", i18n: duplicate }
                       - { label: "Lühike aadress paremal (valikuline)", name: "display", widget: "string", required: false, i18n: duplicate }
               - label: "Tekst"
@@ -179,7 +183,7 @@ collections:
                   - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
                   - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
                   - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
-                  - { label: "Tekst", name: "body", widget: "text", i18n: true, hint: "Tühi rida teeb uue lõigu. Aadressid (https://…) muutuvad ise linkideks." }
+                  - { label: "Tekst", name: "body", widget: "text", required: false, i18n: true, hint: "Tühi rida teeb uue lõigu. Aadressid (https://…) muutuvad ise linkideks." }
               - label: "Tekst + pilt"
                 name: "textImage"
                 widget: "object"
@@ -191,7 +195,7 @@ collections:
                   - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
                   - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
                   - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
-                  - { label: "Tekst", name: "body", widget: "text", i18n: true, hint: "Tühi rida teeb uue lõigu. Aadressid muutuvad ise linkideks." }
+                  - { label: "Tekst", name: "body", widget: "text", required: false, i18n: true, hint: "Tühi rida teeb uue lõigu. Aadressid muutuvad ise linkideks." }
                   - { label: "Pilt", name: "image", widget: "image", i18n: duplicate }
                   - label: "Pildi pool"
                     name: "imageSide"
@@ -213,6 +217,7 @@ collections:
                   - label: "Pildid"
                     name: "images"
                     widget: "list"
+                    required: false
                     i18n: true
                     summary: "{{fields.caption}}"
                     fields:
@@ -339,7 +344,7 @@ collections:
               - { label: "Kaader (pilt, valikuline)", name: "image", widget: "image", required: false, i18n: duplicate, hint: "Tühjaks jätmine näitab värviriba test-kaadrit." }
               - { label: "Pealkiri", name: "title", widget: "string", i18n: duplicate }
               - { label: "Originaalpealkiri / EN (valikuline)", name: "titleEn", widget: "string", required: false, i18n: duplicate }
-              - { label: "Rollid (rea all, väike tekst)", name: "roles", widget: "string", i18n: true }
+              - { label: "Rollid (rea all, väike tekst)", name: "roles", widget: "string", required: false, i18n: true }
               - { label: "Aasta", name: "year", widget: "string", i18n: duplicate }
               - { label: "Roll", name: "role", widget: "string", required: false, i18n: true }
               - { label: "Tüüp", name: "type", widget: "string", required: false, i18n: true }
@@ -400,6 +405,6 @@ collections:
                 i18n: true
                 summary: "{{fields.title}}"
                 fields:
-                  - { label: "Nimetus", name: "title", widget: "string", i18n: true }
+                  - { label: "Nimetus", name: "title", widget: "string", required: false, i18n: true }
                   - { label: "Fail", name: "file", widget: "file", i18n: duplicate, hint: "Väikesed failid (PDF, pildid, lühiklipid). Kuni ~25 MB." }
                   - { label: "Märkus", name: "note", widget: "string", required: false, i18n: true }

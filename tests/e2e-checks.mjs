@@ -126,3 +126,27 @@ export async function task6({ browser, openPage, t, eq, ok, VIEWS }) {
     await p.close();
   });
 }
+
+// ---- Lõppülevaatuse leiud
+export async function review({ browser, openPage, t, eq, ok, VIEWS }) {
+  const dark = VIEWS[0];
+
+  await t('site.json ei laadi (404): vaikimisi sektsioonid ja mäng jäävad', async () => {
+    const p = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await p.route('**/content/site.json*', (r) => r.fulfill({ status: 404, body: 'not found' }));
+    await p.goto('http://localhost:8765/');
+    await p.waitForTimeout(800);
+    ok(await p.$('#viking-runner canvas'), 'mäng käivitus');
+    ok(await p.$('main > section.hero'), 'avaplokk');
+    await p.close();
+  });
+
+  await t('vigane failinimi ei peata ülejäänud lehte', async () => {
+    const p = await openPage(browser, dark, { fixture: 'bad-file.json' });
+    await p.waitForTimeout(500);
+    ok(await p.$('#index .idx-list a'), 'Index joonistus pärast Faile');
+    ok((await p.$eval('#footEmailLink', (a) => a.textContent)).includes('@'), 'jaluse e-post');
+    eq(await p.$$eval('#nav a', (e) => e.length), 6, 'menüü');
+    await p.close();
+  });
+}

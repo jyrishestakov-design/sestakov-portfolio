@@ -352,6 +352,9 @@
 
   /* ============ OMANIKU LISATAVAD SEKTSIOONID ============ */
   .text-body { overflow-wrap: anywhere; }
+  /* Pikad tühikuteta sõnad (URL-id) murduvad igas sisuplokis, et telefonis ei tekiks horisontaalset kerimist */
+  main .wrap { overflow-wrap: break-word; }
+  .flag, .cap li, .spec, .site p, .reel p, .video-cap, .cap-txt { overflow-wrap: anywhere; }
   .text-body p { margin: 0 0 1rem; max-width: 62ch; color: var(--ink-dim); }
   .text-body a { color: var(--accent); }
   .ti { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(1.4rem, 4vw, 3rem); align-items: start; }

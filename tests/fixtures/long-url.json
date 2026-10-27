@@ -84,13 +84,13 @@
         "countLabel": "Üle 30 aasta",
         "menuLabel": "Oskused",
         "inMenu": true,
-        "notice": "",
+        "notice": "Vaata https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "items": [
           {
             "kicker": "01 — Motion & VFX",
             "title": "Liikuvgraafika",
             "points": [
-              "Saategraafika, tiitrid ja motion design",
+              "https://example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "VFX ja compositing filmidele",
               "Reklaamid ja sündmuste visuaalid",
               "After Effects, Fusion, Motion"

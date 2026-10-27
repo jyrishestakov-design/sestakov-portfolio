@@ -70,6 +70,31 @@ def walk(fields):
 for f in files:
     walk(f['fields'])
 
+
+# 5b. Tõlgitavad väljad ei tohi olla kohustuslikud, muidu ei saa salvestada enne,
+#     kui kõik keeled on täidetud (tõlkimata tekst peab jääma eesti keelde)
+def walk_required(fields, path=''):
+    for fld in fields or []:
+        p = path + '/' + fld['name']
+        if fld.get('i18n') is True and fld.get('widget') in ('string', 'text', 'list') and fld.get('required', True) is not False:
+            check(False, f'tõlgitav väli {p} peab olema required: false')
+        walk_required(fld.get('fields'), p)
+        for t in fld.get('types', []) or []:
+            walk_required(t.get('fields'), p + ':' + t['name'])
+        if isinstance(fld.get('field'), dict):
+            walk_required([fld['field']], p)
+
+
+for f in files:
+    for fld in f['fields']:
+        # ülataseme objektid (settings, websites, files, works) ise võivad jääda vaikimisi
+        if fld.get('widget') == 'object':
+            walk_required(fld.get('fields'), '/' + fld['name'])
+        else:
+            walk_required(fld.get('fields'), '/' + fld['name'])
+            for t in fld.get('types', []) or []:
+                walk_required(t.get('fields'), '/' + fld['name'] + ':' + t['name'])
+
 # 6. Fondivalik vastab js/core.js FONT_CHOICES-ile
 core = open('js/core.js', encoding='utf-8').read()
 design = top['design']

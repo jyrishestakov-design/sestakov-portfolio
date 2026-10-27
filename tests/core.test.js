@@ -24,6 +24,20 @@ test('mergeLocale: id-ga kirjed ühendatakse id järgi (järjekord võib erineda
   );
 });
 
+test('mergeLocale: korduv id — n-s kirje saab n-nda tõlke, tüüp ei muutu', () => {
+  assert.deepEqual(
+    C.mergeLocale(
+      { s: [{ type: 'text', id: 'd', title: 'D1' }, { type: 'gallery', id: 'd', title: 'D2' }] },
+      { s: [{ type: 'text', id: 'd', title: 'D1 en' }, { type: 'gallery', id: 'd', title: 'D2 en' }] }
+    ),
+    { s: [{ type: 'text', id: 'd', title: 'D1 en' }, { type: 'gallery', id: 'd', title: 'D2 en' }] }
+  );
+  assert.equal(
+    C.mergeLocale({ s: [{ type: 'text', id: 'x' }] }, { s: [{ type: 'gallery', id: 'x' }] }).s[0].type,
+    'text'
+  );
+});
+
 test('pickLang: URL, salvestatud, lubatud keeled', () => {
   assert.equal(C.pickLang('?lang=en', 'fi', ['et', 'en', 'fi']), 'en');
   assert.equal(C.pickLang('?lang=xx', null, ['et', 'en']), 'et');
