@@ -176,17 +176,9 @@
     return t;
   }
 
-  // Mänguriba: üks mäng täislaiuses (kahe mängu valikuvaade: js/games.js)
+  // Mänguriba (valikuvaade ja laiendamine: js/games.js)
   function startGameStrip(strip, opts) {
-    if (window.startGames) return window.startGames(strip, opts);
-    var game = opts.ufo && !opts.viking ? 'ufo' : 'viking';
-    strip.dataset.view = game;
-    var half = el('div', 'gm-half'); half.dataset.game = game;
-    var mount = el('div');
-    if (game === 'viking') mount.id = 'viking-runner'; else mount.className = 'ufo-runner';
-    half.appendChild(mount); strip.appendChild(half);
-    var api = game === 'ufo' ? window.startUfo(mount, opts.texts) : (window.startViking(mount), null);
-    return { setTexts: function (t) { if (api) api.setTexts(t); } };
+    return window.startGames ? window.startGames(strip, opts) : null;
   }
   var RENDERERS = {
     game: function (section) {

@@ -191,3 +191,55 @@ export async function ufo({ browser, openPage, t, eq, ok, VIEWS }) {
     await p.close();
   });
 }
+
+// ---- Mänguriba: mõlemad mängud
+export async function games({ browser, openPage, t, eq, ok, VIEWS }) {
+  const dark = VIEWS[0], phone = VIEWS[2];
+  const view = (p) => p.$eval('#ride', (s) => s.dataset.view);
+  const shown = (p, g) => p.$eval(`.gm-half[data-game="${g}"]`, (e) => getComputedStyle(e).display !== 'none');
+
+  await t('mänguriba: kaks demot, tühik ei käivita, klõps laiendab, tagasi', async () => {
+    const p = await openPage(browser, dark, { fixture: 'games-both.json', init: UFO_INIT });
+    await p.waitForSelector('.ufo-runner canvas');
+    await p.waitForSelector('#viking-runner canvas');
+    eq(await view(p), 'pick', 'valikuvaade');
+    await p.keyboard.press('Space');
+    eq(await p.evaluate(() => __ufoDebug.mode()), 'demo', 'tühik valikuvaates ei käivita UFO-t');
+    eq(await view(p), 'pick', 'jääb valikuvaatesse');
+    await p.click('.gm-half[data-game="ufo"] .gm-pick');
+    eq(await view(p), 'ufo', 'UFO laiendatud');
+    ok(!(await shown(p, 'viking')), 'Viking peidus');
+    await p.waitForTimeout(200);
+    const w = await p.evaluate(() => [document.querySelector('.ufo-runner canvas').clientWidth, document.getElementById('ride').clientWidth]);
+    ok(w[0] >= 0.95 * w[1], 'UFO canvas täislaiuses (' + w + ') (Review Focus 2)');
+    await p.click('.gm-back');
+    eq(await view(p), 'pick', 'tagasi valikuvaatesse');
+    ok((await shown(p, 'viking')) && (await shown(p, 'ufo')), 'mõlemad nähtavad');
+    eq(p.errors, [], 'konsooli vead');
+    await p.close();
+  });
+
+  await t('mänguriba: ← → + Enter valib; keelevahetus ei katkesta mängu', async () => {
+    const p = await openPage(browser, dark, { fixture: 'games-both.json', init: UFO_INIT });
+    await p.waitForSelector('.ufo-runner canvas');
+    await p.keyboard.press('ArrowRight');
+    await p.keyboard.press('Enter');
+    eq(await view(p), 'ufo', 'klaviatuuriga UFO');
+    await p.keyboard.press('Space');
+    eq(await p.evaluate(() => __ufoDebug.mode()), 'play', 'UFO mängib');
+    await p.click('.langs button:has-text("EN")');
+    eq(await p.evaluate(() => __ufoDebug.mode()), 'play', 'keelevahetus ei katkesta (Review Focus 1)');
+    eq(await p.$eval('.gm-back', (b) => b.textContent), '← Games', 'nupp inglise keeles');
+    eq(await p.$$eval('.ufo-runner canvas', (c) => c.length), 1, 'üks canvas (ei dubleeru)');
+    await p.close();
+  });
+
+  await t('mänguriba telefonis: ei teki horisontaalset kerimist', async () => {
+    const p = await openPage(browser, phone, { fixture: 'games-both.json' });
+    await p.waitForSelector('.ufo-runner canvas');
+    eq(await p.evaluate(() => document.documentElement.scrollWidth), 390, 'valikuvaade');
+    await p.click('.gm-half[data-game="viking"] .gm-pick');
+    eq(await p.evaluate(() => document.documentElement.scrollWidth), 390, 'laiendatud');
+    await p.close();
+  });
+}
