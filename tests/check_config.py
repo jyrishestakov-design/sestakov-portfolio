@@ -42,6 +42,7 @@ RENDER_KEYS = {
     'caps': {'items'}, 'index': {'links'}, 'links': {'links'},
     'text': {'body'}, 'textImage': {'body', 'image', 'imageSide'},
     'gallery': {'images'}, 'video': {'embedUrl', 'caption'},
+    'games': {'viking', 'ufo'},
 }
 types = {t['name']: t for t in top['sections'].get('types', [])}
 check(set(types) == set(RENDER_KEYS), f'sektsioonitüübid erinevad: {sorted(set(types) ^ set(RENDER_KEYS))}')
@@ -53,7 +54,7 @@ for name, t in types.items():
 # 5. Keelest sõltumatud väljad on i18n: duplicate (kõikjal configis)
 DUP = {'image', 'file', 'url', 'link', 'embedUrl', 'year', 'todo', 'enabled', 'inMenu', 'id',
        'design', 'languages', 'defaultTheme', 'contactEmail', 'contactPhone', 'portalUrl',
-       'imageSide', 'format', 'camera', 'lens', 'fps', 'tools', 'stack'}
+       'imageSide', 'format', 'camera', 'lens', 'fps', 'tools', 'stack', 'viking', 'ufo'}
 
 
 def walk(fields):

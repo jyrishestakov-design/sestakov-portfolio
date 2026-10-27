@@ -23,14 +23,16 @@
     },
     "sections": [
       {
-        "type": "game",
+        "type": "games",
         "id": "ride",
         "enabled": true,
         "title": "",
         "countLabel": "",
         "menuLabel": "",
         "inMenu": false,
-        "notice": ""
+        "notice": "",
+        "viking": true,
+        "ufo": true
       },
       {
         "type": "hero",

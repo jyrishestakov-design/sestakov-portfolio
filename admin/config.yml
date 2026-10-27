@@ -94,6 +94,19 @@ collections:
                   - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
                   - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: true, i18n: duplicate }
                   - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true, hint: "Tühjaks jätmine peidab kasti. **Rasvane algus** on lubatud." }
+              - label: "Minimängud (Viking Rider + UFO)"
+                name: "games"
+                widget: "object"
+                fields:
+                  - { label: "Sees", name: "enabled", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "Ankur (aadressi #osa, ladina tähed)", name: "id", widget: "string", i18n: duplicate, pattern: ['^[a-z0-9-]+$', "Ainult väikesed ladina tähed, numbrid ja sidekriips"] }
+                  - { label: "Pealkiri", name: "title", widget: "string", required: false, i18n: true }
+                  - { label: "Väike tekst pealkirja kõrval", name: "countLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Menüü tekst", name: "menuLabel", widget: "string", required: false, i18n: true }
+                  - { label: "Näita menüüs", name: "inMenu", widget: "boolean", default: false, i18n: duplicate }
+                  - { label: "Mustandi märkus (kollane kast)", name: "notice", widget: "text", required: false, i18n: true }
+                  - { label: "Viking Rider", name: "viking", widget: "boolean", default: true, i18n: duplicate }
+                  - { label: "UFO", name: "ufo", widget: "boolean", default: true, i18n: duplicate, hint: "Kui mõlemad on sees, jooksevad demod kõrvuti ja külastaja valib, kumba mängida." }
               - label: "Avaplokk (nimi ja rollid)"
                 name: "hero"
                 widget: "object"

@@ -2,7 +2,8 @@
 import json, sys
 d = json.load(open(sys.argv[1] if len(sys.argv) > 1 else 'content/site.json'))
 et = d['et']
-assert [s['type'] for s in et['sections']] == ['game','hero','log','reel','web','caps','files','index'], 'sections'
+types = [s['type'] for s in et['sections']]
+assert types[0] in ('game', 'games') and types[1:] == ['hero','log','reel','web','caps','files','index'], 'sections'
 assert [s['id'] for s in et['sections']] == ['ride','top','log','reel','web','caps','files','index'], 'ids'
 assert len(et['works']) == 22, 'works'
 assert len(et['websites']['items']) == 9, 'websites'
