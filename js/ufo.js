@@ -452,12 +452,25 @@ window.startUfo = function (mount, texts) {
     ctx.textAlign = 'left';
   }
 
+  var helpW = 0;   // viimati joonistatud abiteksti laius (testikonks)
   function T(key) { return (TOUCH && texts[key + 'Touch']) || texts[key] || ''; }
+
+  // Abitekst: font väheneb, kuni rida mahub laiusesse (kitsas pool / telefon)
+  function centerFit(text, y, size, color) {
+    var font = function (s) { return s + 'px "IBM Plex Mono", ui-monospace, monospace'; };
+    ctx.font = font(size);
+    var w = ctx.measureText(text).width, max = LW - 8;
+    if (w > max) { size = Math.max(1.5, size * max / w); ctx.font = font(size); w = ctx.measureText(text).width; }
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.fillStyle = color; ctx.fillText(text, LW / 2, y);
+    ctx.textAlign = 'left';
+    helpW = w;
+  }
 
   function drawMessage(now) {
     if (mode === 'demo') {
       if (((now / 600) | 0) % 2) center(T('ufoStart'), 36, 6, '#ECE7DD');
-      center(T('ufoHelp'), 46, 4, '#9C9789');
+      centerFit(T('ufoHelp'), 46, 4, '#9C9789');
     } else if (mode === 'over') {
       center(texts.ufoOver || '', 38, 8, '#E4572E');
       center(T('ufoAgain'), 50, 4, '#9C9789');
@@ -489,18 +502,26 @@ window.startUfo = function (mount, texts) {
     return r.width > 0 && r.bottom > 0 && r.top < innerHeight;
   }
 
+  // Iga sõrm jätab meelde oma rolli, et ühe tõstmine ei katkestaks teise tegevust
+  var roles = {};
+  function applyRoles() {
+    var r = Object.keys(roles).map(function (k) { return roles[k]; });
+    keyUp = r.indexOf('up') >= 0; keyDown = r.indexOf('down') >= 0;
+    if (r.indexOf('z') < 0) zHeld = false;
+  }
   mount.addEventListener('pointerdown', function (e) {
     e.preventDefault();
     if (mode !== 'play') { pressStart(); return; }
     var r = mount.getBoundingClientRect();
     var fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
-    if (fx > 0.75 && fy < 0.5) pressZ(performance.now());      // paremal üleval: Z (hoia = superjõud)
-    else if (fx > 0.75) pressBeam();                           // paremal all: kiir alla
-    else if (fy < 0.5) keyUp = true;
-    else keyDown = true;
+    var role = null;
+    if (fx > 0.75 && fy < 0.5) { role = 'z'; pressZ(performance.now()); }   // paremal üleval: Z (hoia = superjõud)
+    else if (fx > 0.75) pressBeam();                                       // paremal all: kiir alla
+    else role = fy < 0.5 ? 'up' : 'down';
+    if (role) { roles[e.pointerId] = role; applyRoles(); }
     try { mount.setPointerCapture(e.pointerId); } catch (_) {}
   });
-  var release = function () { keyUp = keyDown = false; zHeld = false; };
+  var release = function (e) { delete roles[e.pointerId]; applyRoles(); };
   mount.addEventListener('pointerup', release);
   mount.addEventListener('pointercancel', release);
 
@@ -514,7 +535,7 @@ window.startUfo = function (mount, texts) {
     else if (e.code === 'KeyZ') {
       e.preventDefault();
       if (e.repeat) return;
-      if (playing) pressZ(performance.now()); else pressStart();
+      if (playing) pressZ(performance.now());   // ainult mängus (valikuvaates ei tohi Z mängu alustada)
     }
     else if (!playing) return;                                   // demo ajal kerivad nooled lehte
     else if (e.code === 'ArrowUp') { e.preventDefault(); keyUp = true; }
@@ -548,7 +569,7 @@ window.startUfo = function (mount, texts) {
   if (TEST) {
     window.__ufoDebug = {
       mode: function () { return mode; },
-      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now(), keyUp: keyUp, keyDown: keyDown, ufoW: uW(), ufoH: uH(), missiles: missiles }; },
+      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now(), keyUp: keyUp, keyDown: keyDown, ufoW: uW(), ufoH: uH(), missiles: missiles, zHeld: zHeld, helpW: helpW }; },
       state: function () { var o = {}; for (var k in state) o[k] = state[k]; return o; },
       latch: function () { keyUp = true; },   // demo-autopiloodi olek: ↑ „all“
       setTotal: function (n) { state.total = n; state.level = U.levelOf(n); },

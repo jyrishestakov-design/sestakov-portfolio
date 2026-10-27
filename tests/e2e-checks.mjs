@@ -412,3 +412,44 @@ export async function ufoMissiles({ browser, openPage, t, eq, ok, VIEWS }) {
     await p.close();
   });
 }
+
+// ---- Lõppülevaatuse leiud (tasemed)
+export async function ufoLevelsReview({ browser, openPage, t, eq, ok, VIEWS }) {
+  const dark = VIEWS[0], phone = VIEWS[2];
+  const D = (p, f) => p.evaluate(f);
+
+  await t('Z valikuvaates ei käivita UFO mängu', async () => {
+    const p = await openPage(browser, dark, { fixture: 'games-both.json', init: UFO_INIT });
+    await p.waitForFunction(() => window.__ufoDebug);
+    await p.keyboard.press('KeyZ');
+    await p.waitForTimeout(100);
+    eq(await D(p, () => __ufoDebug.mode()), 'demo', 'jääb demoks');
+    await p.close();
+  });
+
+  await t('puude: teise sõrme tõstmine ei katkesta Z hoidmist', async () => {
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init: UFO_INIT });
+    await p.waitForFunction(() => window.__ufoDebug);
+    await p.keyboard.press('Space');
+    const r = await D(p, () => { const b = document.querySelector('.ufo-runner').getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height }; });
+    const fire = (type, id, fx, fy) => p.evaluate(([type, id, x, y]) => {
+      document.querySelector('.ufo-runner').dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, cancelable: true }));
+    }, [type, id, r.x + r.w * fx, r.y + r.h * fy]);
+    await fire('pointerdown', 1, 0.9, 0.2);          // Z
+    await fire('pointerdown', 2, 0.3, 0.2);          // üles
+    await fire('pointerup', 2, 0.3, 0.2);
+    eq(await D(p, () => __ufoDebug.info().zHeld), true, 'Z hoitakse edasi');
+    await fire('pointerup', 1, 0.9, 0.2);
+    eq(await D(p, () => __ufoDebug.info().zHeld), false, 'Z vabastatud');
+    await p.close();
+  });
+
+  await t('telefoni valikuvaates mahub juhiste rida ära (FI)', async () => {
+    const p = await openPage(browser, phone, { fixture: 'games-both.json', init: UFO_INIT, query: '?lang=fi' });
+    await p.waitForFunction(() => window.__ufoDebug);
+    await p.waitForTimeout(1500);
+    const i = await D(p, () => __ufoDebug.info());
+    ok(i.helpW > 0 && i.helpW <= i.LW - 8, 'abitekst ' + i.helpW + ' ≤ ' + (i.LW - 8));
+    await p.close();
+  });
+}
