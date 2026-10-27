@@ -2,3 +2,4 @@
 files-worker/.dev.vars
 files-worker/.wrangler/
 files-worker/node_modules/
+.superpowers/
