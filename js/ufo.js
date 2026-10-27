@@ -13,7 +13,15 @@ window.startUfo = function (mount, texts) {
   var UFO_X = 0.22;                           // ufo asukoht (osa laiusest)
   var Y_MIN = 16;                             // ufo kõrgeim asend (HUD-i all)
   var LIFT = 1.5, SINK_ACC = 0.025, SINK_MAX = 0.6;
-  var SPEED_START = 1.2, SPEED_MAX = 3.2, SPEED_ACC = 0.0004, SPEED_STEP = 0.04, SPEED_MIN = 0.8, SPEED_TOP = 4.2;
+  var SPEED_START = 1.2, SPEED_MAX = 3.2, SPEED_ACC = 0.0004;
+  var MOVE = 1.4, X_MIN = 4;                  // ← → sõit ekraanil
+  // Parallaks: pilvekihid (kaugemad aeglasemad), udu ja kauged tuled
+  var CLOUD_LAYERS = [
+    { k: 0.08, alpha: 0.22, yMin: 22, yMax: 40, r: 5, per: 70, col: '#3a4258' },
+    { k: 0.2, alpha: 0.32, yMin: 30, yMax: 52, r: 8, per: 95, col: '#454e68' },
+    { k: 0.45, alpha: 0.42, yMin: 40, yMax: 62, r: 12, per: 140, col: '#545e7c' }
+  ];
+  var LIGHT_K = 0.12, FOG_K = [0.7, 1.35];
   var IDLE_TO_DEMO = 12000;
   var RISE_MS = 400;                          // teleporteeritav objekt tõuseb ja kaob
 
@@ -86,7 +94,7 @@ window.startUfo = function (mount, texts) {
   cv.setAttribute('aria-label', 'UFO: nooled üles-alla lendavad, X laserkiir');
   mount.appendChild(cv);
   var ctx = cv.getContext('2d');
-  var scale = 2, LW = 300, dpr = 1, stars = [];
+  var scale = 2, LW = 300, dpr = 1, stars = [], clouds = [], lights = [], paraX = 0;
 
   function resize() {
     var r = mount.getBoundingClientRect();
@@ -97,6 +105,13 @@ window.startUfo = function (mount, texts) {
     cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
     stars = [];
     for (var i = 0; i < LW / 4; i++) stars.push({ x: Math.random() * LW, y: Math.random() * (GROUND - 20), p: Math.random() * 6.28 });
+    clouds = [];
+    CLOUD_LAYERS.forEach(function (L, li) {
+      var n = Math.max(2, Math.round(LW / L.per));
+      for (var j = 0; j < n; j++) clouds.push({ L: li, x: (j + Math.random() * 0.8) * (LW + 60) / n, y: L.yMin + Math.random() * (L.yMax - L.yMin), s: 0.7 + Math.random() * 0.6 });
+    });
+    lights = [];
+    for (var m = 0; m < LW / 26; m++) lights.push({ x: Math.random() * LW, p: Math.random() * 6.28, c: Math.random() < 0.7 ? '#ffd27a' : '#ff9a5a' });
   }
   new ResizeObserver(resize).observe(mount);
   resize();
@@ -105,7 +120,7 @@ window.startUfo = function (mount, texts) {
   var mode = 'demo';                // 'demo' | 'play' | 'over' | 'win'
   var state, ufo, obs, speed, nextGap, lastBeamAt, beamUntil, groundX, overAt, win, banner, frame;
   var missiles, nextMissile, lastZapAt, zapUntil, zHeld, zHeldSince, chargeFullAt, flash, superT;
-  var keyUp = false, keyDown = false, keyFaster = false, keySlower = false;
+  var keyUp = false, keyDown = false, keyFwd = false, keyBack = false;
   var hi = 0;
   try { hi = +localStorage.getItem('ufoHi') || 0; } catch (e) {}
 
@@ -116,7 +131,7 @@ window.startUfo = function (mount, texts) {
     win = null; banner = null; frame = 0;
     missiles = []; nextMissile = 6000; lastZapAt = -1e9; zapUntil = 0;
     zHeld = false; zHeldSince = 0; chargeFullAt = 0; flash = 0; superT = 0;
-    keyUp = keyDown = keyFaster = keySlower = false;   // demo-autopiloodi klahvid ei tohi mängu jääda
+    keyUp = keyDown = keyFwd = keyBack = false;   // demo-autopiloodi klahvid ei tohi mängu jääda
   }
 
   // ---------- Z-laser ja superjõud ----------
@@ -175,15 +190,16 @@ window.startUfo = function (mount, texts) {
     if (flash > 0) flash = Math.max(0, flash - 0.03 * dt);
     if (superT > 0) superT -= dt;
     if (mode === 'win') { updateWin(dt); return; }
-    ufo.x = Math.round(LW * UFO_X);
 
-    // kiirus (ülempiir kasvab tasemega)
+    // ← → sõit edasi-tagasi (vasakust servast keskkohani); demos ja algul ufo oma kohal
+    if (mode === 'play' && (keyFwd || keyBack)) ufo.x += (keyFwd ? MOVE : -MOVE) * dt;
+    else if (mode !== 'play') ufo.x = LW * UFO_X;
+    ufo.x = Math.max(X_MIN, Math.min(LW * 0.5 - uW(), ufo.x));
+
+    // kiirus: automaatne, ülempiir kasvab tasemega
     var speedMax = SPEED_MAX + lvlF() * 0.35;
-    if (mode === 'play') {
-      if (keyFaster) speed = Math.min(SPEED_TOP, speed + SPEED_STEP * dt);
-      else if (keySlower) speed = Math.max(SPEED_MIN, speed - SPEED_STEP * dt);
-      else if (speed < speedMax) speed += SPEED_ACC * dt;
-    }
+    if (mode === 'play' && speed < speedMax) speed += SPEED_ACC * dt;
+    paraX += speed * dt;
 
     // lend: ↑ ↓ või automaatne vajumine
     if (mode === 'demo') demoPilot(now);
@@ -317,6 +333,8 @@ window.startUfo = function (mount, texts) {
     ctx.fillStyle = '#0C0D11';
     ctx.beginPath(); ctx.arc(mx + 2.5, 18.5, 5.4, 0, 6.29); ctx.fill();
 
+    drawClouds();
+    drawLights(now);
     if (win) drawMothership(win.shipY);
 
     // maapind
@@ -324,6 +342,7 @@ window.startUfo = function (mount, texts) {
     ctx.fillStyle = '#2a3a26'; ctx.fillRect(0, GROUND, LW, 1);
     ctx.fillStyle = '#1f2b1d';
     for (var gx = -groundX; gx < LW; gx += 8) ctx.fillRect(Math.round(gx), GROUND + 4, 2, 1);
+    drawFog(0);
 
     // kiir
     if (now < beamUntil && mode !== 'win') drawBeam(ufo.x + uW() / 2, ufo.y + uH(), Math.min(BEAM_LEN, GROUND - ufo.y - uH()), now);
@@ -369,6 +388,9 @@ window.startUfo = function (mount, texts) {
       ctx.shadowBlur = 0;
     }
 
+    drawFog(1);
+    drawStreaks();
+
     // superjõu sähvatus
     if (flash > 0) { ctx.fillStyle = 'rgba(125,255,122,' + (flash * 0.45) + ')'; ctx.fillRect(0, 0, LW, LOGICAL_H); }
 
@@ -376,6 +398,58 @@ window.startUfo = function (mount, texts) {
     if (banner) center(banner.s, 30, 9, '#ffe9a0');
     if (superT > 0) center('SUPER!', 44, 10, '#7dff7a');
     drawMessage(now);
+  }
+
+  // ---------- parallaks: pilved, kauged tuled, udu, kiirusjooned ----------
+  function wrap(x, span) { return ((x % span) + span) % span; }
+
+  function drawClouds() {
+    for (var i = 0; i < clouds.length; i++) {
+      var c = clouds[i], L = CLOUD_LAYERS[c.L], r = L.r * c.s;
+      var x = wrap(c.x - paraX * L.k, LW + 60) - 30;
+      ctx.globalAlpha = L.alpha; ctx.fillStyle = L.col;
+      ctx.beginPath();
+      ctx.ellipse(x, c.y, r * 1.8, r * 0.55, 0, 0, 6.29);
+      ctx.ellipse(x - r * 0.9, c.y + r * 0.15, r, r * 0.45, 0, 0, 6.29);
+      ctx.ellipse(x + r * 0.8, c.y - r * 0.2, r * 1.1, r * 0.5, 0, 0, 6.29);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Kauged talutuled horisondil (aeglased, vilguvad)
+  function drawLights(now) {
+    for (var i = 0; i < lights.length; i++) {
+      var l = lights[i], x = wrap(l.x - paraX * LIGHT_K, LW);
+      ctx.globalAlpha = 0.45 + 0.35 * Math.sin(now / 700 + l.p);
+      ctx.shadowColor = l.c; ctx.shadowBlur = 3;
+      ctx.fillStyle = l.c; ctx.fillRect(Math.round(x), GROUND - 2, 1, 1);
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  }
+
+  // Udu maapinna kohal: tagumine kiht aeglasem, eesmine kiirem
+  function drawFog(layer) {
+    var k = FOG_K[layer], step = 34, off = wrap(paraX * k, step);
+    ctx.fillStyle = layer ? 'rgba(170,190,210,.07)' : 'rgba(140,160,185,.06)';
+    for (var x = -off - step; x < LW + step; x += step) {
+      var wob = Math.sin((x + paraX * k) * 0.05 + layer) * 1.5;
+      ctx.beginPath();
+      ctx.ellipse(x, GROUND - 2 - layer * 2 + wob, 26, 4 + layer, 0, 0, 6.29);
+      ctx.fill();
+    }
+  }
+
+  // Kiirusjooned maa lähedal, kui sõit läheb kiireks
+  function drawStreaks() {
+    var a = Math.min(0.35, (speed - 2) * 0.25);
+    if (a <= 0) return;
+    ctx.fillStyle = 'rgba(220,235,255,' + a + ')';
+    var len = Math.round((speed - 1.5) * 5);
+    for (var i = 0; i < 6; i++) {
+      var x = wrap(i * 97 - paraX * 1.8, LW + len) - len;
+      ctx.fillRect(Math.round(x), GROUND - 4 - i * 3, len, 1);
+    }
   }
 
   function drawBeam(cx, top, len, now) {
@@ -540,17 +614,17 @@ window.startUfo = function (mount, texts) {
     else if (!playing) return;                                   // demo ajal kerivad nooled lehte
     else if (e.code === 'ArrowUp') { e.preventDefault(); keyUp = true; }
     else if (e.code === 'ArrowDown') { e.preventDefault(); keyDown = true; }
-    else if (e.code === 'ArrowRight') { e.preventDefault(); keyFaster = true; }
-    else if (e.code === 'ArrowLeft') { e.preventDefault(); keySlower = true; }
+    else if (e.code === 'ArrowRight') { e.preventDefault(); keyFwd = true; }
+    else if (e.code === 'ArrowLeft') { e.preventDefault(); keyBack = true; }
   });
   window.addEventListener('keyup', function (e) {
     if (e.code === 'ArrowUp') keyUp = false;
     if (e.code === 'ArrowDown') keyDown = false;
-    if (e.code === 'ArrowRight') keyFaster = false;
-    if (e.code === 'ArrowLeft') keySlower = false;
+    if (e.code === 'ArrowRight') keyFwd = false;
+    if (e.code === 'ArrowLeft') keyBack = false;
     if (e.code === 'KeyZ') zHeld = false;
   });
-  window.addEventListener('blur', function () { keyUp = keyDown = keyFaster = keySlower = zHeld = false; });
+  window.addEventListener('blur', function () { keyUp = keyDown = keyFwd = keyBack = zHeld = false; });
 
   // ---------- tsükkel (peatub, kui pole nähtav) ----------
   var visible = true, last = performance.now();
@@ -569,7 +643,8 @@ window.startUfo = function (mount, texts) {
   if (TEST) {
     window.__ufoDebug = {
       mode: function () { return mode; },
-      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now(), keyUp: keyUp, keyDown: keyDown, ufoW: uW(), ufoH: uH(), missiles: missiles, zHeld: zHeld, helpW: helpW }; },
+      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now(), keyUp: keyUp, keyDown: keyDown, ufoW: uW(), ufoH: uH(), missiles: missiles, zHeld: zHeld, helpW: helpW, speed: speed }; },
+      scene: function () { return { cloudLayers: CLOUD_LAYERS.length, clouds: clouds.length, lights: lights.length, fogLayers: FOG_K.length, fogX: paraX }; },
       state: function () { var o = {}; for (var k in state) o[k] = state[k]; return o; },
       latch: function () { keyUp = true; },   // demo-autopiloodi olek: ↑ „all“
       setTotal: function (n) { state.total = n; state.level = U.levelOf(n); },

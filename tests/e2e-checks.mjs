@@ -453,3 +453,38 @@ export async function ufoLevelsReview({ browser, openPage, t, eq, ok, VIEWS }) {
     await p.close();
   });
 }
+
+// ---- Edasi-tagasi sõit ja parallaks
+export async function ufoParallax({ browser, openPage, t, eq, ok, VIEWS }) {
+  const dark = VIEWS[0];
+  const D = (p, f) => p.evaluate(f);
+
+  await t('← → liigutavad ufot (kuni keskkohani), kiirus ei muutu', async () => {
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init: UFO_INIT });
+    await p.waitForFunction(() => window.__ufoDebug);
+    await p.keyboard.press('Space');
+    const a = await D(p, () => __ufoDebug.info());
+    await p.keyboard.down('ArrowRight'); await p.waitForTimeout(3000); await p.keyboard.up('ArrowRight');
+    const b = await D(p, () => __ufoDebug.info());
+    ok(b.ufo.x > a.ufo.x + 20, 'edasi: ' + a.ufo.x + ' → ' + b.ufo.x);
+    ok(b.ufo.x + b.ufoW <= b.LW * 0.5 + 0.5, 'mitte üle keskkoha');
+    ok(Math.abs(b.speed - a.speed) < 0.2, 'kiirus ei hüppa: ' + a.speed + ' → ' + b.speed);
+    await p.keyboard.down('ArrowLeft'); await p.waitForTimeout(400); await p.keyboard.up('ArrowLeft');
+    ok((await D(p, () => __ufoDebug.info().ufo.x)) < b.ufo.x, 'tagasi');
+    await p.close();
+  });
+
+  await t('taust: pilvekihid, tuled ja udu on olemas ning liiguvad', async () => {
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init: UFO_INIT });
+    await p.waitForFunction(() => window.__ufoDebug);
+    const s1 = await D(p, () => __ufoDebug.scene());
+    ok(s1.cloudLayers === 3 && s1.clouds > 0, 'pilved: ' + JSON.stringify(s1));
+    ok(s1.lights > 0, 'tuled');
+    eq(s1.fogLayers, 2, 'udukihid');
+    await p.waitForTimeout(500);
+    const s2 = await D(p, () => __ufoDebug.scene());
+    ok(s2.fogX !== s1.fogX, 'udu liigub');
+    eq(p.errors, [], 'konsooli vead');
+    await p.close();
+  });
+}
