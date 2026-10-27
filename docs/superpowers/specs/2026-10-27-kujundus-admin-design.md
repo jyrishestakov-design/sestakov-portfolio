@@ -8,7 +8,8 @@ Omanik saab `/admin` kaudu, koodi puutumata:
 
 - muuta ülemise menüü sisu ja järjekorda;
 - sektsioone sisse/välja lülitada, ümber järjestada, lisada ja kustutada;
-- muuta värve, fonte, tausta ja efekte ning paigutust.
+- muuta värve, fonte, tausta ja efekte ning paigutust;
+- hallata sisu eesti, inglise ja soome keeles.
 
 Eeskuju: Kuressaare Kunstikooli, Ösel MC ja Muhu Veinitalu adminid.
 
@@ -89,6 +90,17 @@ Tühi väli tähendab vaikeväärtust, ehk praegust välimust. CSS-muutuja kirju
 - **Sisu → Kujundus**: grupid nagu tabelis (`color`, `select`, `number`, `boolean`, `image` vidinad).
 - Olemasolevad kirjed (Üldinfo, Tööd, Veebilehed, Failid) jäävad alles. `reel` ja `draftNotices` kolivad sektsioonidesse.
 
+## Mitmekeelsus (eesti · inglise · soome)
+
+- **Keeled:** `et` (vaikimisi), `en`, `fi`.
+- **Admin:** Sveltia CMS-i sisseehitatud i18n (`structure: single_file`). Igal tekstiväljal on adminis keelte vahekaardid. Väljad, mis keelest ei sõltu (pildid, URL-id, aastad, värvid, linnukesed), on `i18n: duplicate`, ehk neid muudetakse ühes kohas.
+- **Fail:** `content/site.json` kuju muutub: `{ "et": {…}, "en": {…}, "fi": {…} }`.
+- **Tõlkimata tekst:** näidatakse eestikeelset. Leht ühendab valitud keele andmed eesti omadega väljade kaupa: tühi väli võetakse eesti keelest. Nimekirjad ühendatakse järjekorranumbri järgi.
+- **Keelevalik lehel:** päises nupud `ET · EN · FI`. Valik jäetakse brauserisse meelde. Lingiga saab keele ette anda (`?lang=en`). `<html lang>` vahetub vastavalt.
+- **Nähtavad keeled:** adminis „Üldinfo → Keeled“ linnukesed. Keel, mis pole sees, keelevalikus ei paista, nii saab soome keele peita, kuni tõlge on valmis.
+- **Lehe enda tekstid** („Ava leht ↗“, „Link tulekul“, Shot Logi väljanimed, failide ja klienditsooni tekstid jms) tõlgitakse koodis oleva sõnastikuga kõigisse kolme keelde.
+- **Tõlkimine:** algne inglise ja soome tõlge tehakse ülemineku käigus olemasoleva eestikeelse sisu põhjal. Omanik vaatab tõlked üle ja parandab adminis.
+
 ## Üleminek
 
 Ühekordne skript kannab praeguse sisu uude vormi: sektsioonid praeguses järjekorras, Oskuste ja Indexi tekstid HTML-ist JSON-i, `reel` ja märkused sektsioonidesse, `design` tühjaks.
@@ -97,9 +109,10 @@ Tühi väli tähendab vaikeväärtust, ehk praegust välimust. CSS-muutuja kirju
 
 1. **Sama välimus:** ekraanipildid enne ja pärast muudatust (tume, hele, telefon), võrdlus pikslite kaupa. Teralisus, ajakood ja minimäng on võrdluse ajaks peidetud, sest need liiguvad.
 2. **Funktsioonid:** testandmetega kontrollin peitmist, järjekorda, menüüd, iga uut tüüpi, värvide, fontide, efektide ja paigutuse muutmist.
-3. Konsoolis ei tohi olla vigu. Telefonis (390 px) ei tohi tekkida horisontaalset kerimist.
-4. `config.yml` peab olema kehtiv YAML ja vastama `site.json` struktuurile.
+3. **Keeled:** keelevahetus, `?lang=` link, tõlkimata välja asendamine eesti keelega, peidetud keel.
+4. Konsoolis ei tohi olla vigu. Telefonis (390 px) ei tohi tekkida horisontaalset kerimist.
+5. `config.yml` peab olema kehtiv YAML ja vastama `site.json` struktuurile.
 
 ## Väljaspool
 
-Mitmekeelsus, mitu lehte (alamlehed), admini enda kujunduse muutmine, kasutajakontod.
+Mitu lehte (alamlehed), admini enda kujunduse muutmine, kasutajakontod, rohkem kui kolm keelt.
