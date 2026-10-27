@@ -41,7 +41,7 @@ async function openPage(browser, view, { fixture, query = '' } = {}) {
   }
   await page.route(/youtube\.com|vimeo\.com/, (r) => r.fulfill({ body: '', contentType: 'text/html' }));
   await page.goto(URL + query, { waitUntil: 'load' });
-  await page.waitForSelector('#logList .entry, main section', { timeout: 8000 }).catch(() => {});
+  await page.waitForSelector('#log .entry, main section', { timeout: 8000 }).catch(() => {});
   page.errors = errors;
   return page;
 }
@@ -50,7 +50,7 @@ async function shootAll(browser, dir) {
   mkdirSync(dir, { recursive: true });
   for (const v of VIEWS) {
     const page = await openPage(browser, v);
-    await page.waitForSelector('#logList .entry');
+    await page.waitForSelector('#log .entry');
     await freeze(page);
     await page.screenshot({ path: path.join(dir, `${v.name}.png`), fullPage: true });
     await page.close();
