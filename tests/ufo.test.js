@@ -16,7 +16,10 @@ test('konstandid vastavad spetsifikatsioonile', () => {
 });
 
 test('newGameState: algolek', () => {
-  assert.deepEqual(U.newGameState(), { lives: 3, cows: 0, men: 0, total: 0, won: false, over: false, invulnUntil: 0 });
+  assert.deepEqual(U.newGameState(), {
+    lives: 3, cows: 0, men: 0, total: 0, won: false, over: false, invulnUntil: 0,
+    score: 0, level: 1, charge: 0, levelUp: false
+  });
 });
 
 test('beamHits: ufo all ja kiire ulatuses', () => {
@@ -69,4 +72,65 @@ test('hit: elu maha, haavamatus 1,5 s', () => {
 test('beamReady: kiir + jahtumine = 950 ms', () => {
   assert.equal(U.beamReady(949, 0), false);
   assert.equal(U.beamReady(950, 0), true);
+});
+
+// ---- Tasemed, punktid, laeng, Z, superjõud
+test('uued konstandid', () => {
+  assert.equal(U.PER_LEVEL, 20); assert.equal(U.LEVELS, 5);
+  assert.deepEqual(U.UFO_SCALE, [1, 1.15, 1.3, 1.45, 1.6]);
+  assert.equal(U.ZAP_MS, 200); assert.equal(U.ZAP_COOLDOWN_MS, 400);
+  assert.equal(U.SUPER_CHARGE_MS, 30000); assert.equal(U.MISSILE_BONUS_MS, 2000); assert.equal(U.SUPER_HOLD_MS, 1000);
+});
+
+test('levelOf', () => {
+  assert.deepEqual([0, 19, 20, 99, 100, 500].map(U.levelOf), [1, 1, 2, 5, 5, 5]);
+});
+
+test('punktid ja taseme tõus', () => {
+  let s = U.teleport(U.newGameState(), 'cow');
+  assert.equal(s.score, 10);
+  s = times(19, 'man', s);
+  assert.equal(s.level, 2); assert.equal(s.levelUp, true);
+  assert.equal(s.score, 20 * 10 + 200);
+  s = U.teleport(s, 'cow');
+  assert.equal(s.levelUp, false); assert.equal(s.score, 400 + 20);
+});
+
+test('võiduboonus 500 täpselt ühe korra', () => {
+  let s = U.newGameState(), expected = 0;
+  for (let i = 0; i < 101; i++) {
+    const lvl = U.levelOf(i);
+    expected += 10 * lvl;
+    const nl = U.levelOf(i + 1);
+    if (nl > lvl) expected += 100 * nl;
+    if (i + 1 === 100) expected += 500;
+    s = U.teleport(s, 'cow');
+  }
+  assert.equal(s.won, true); assert.equal(s.level, 5);
+  assert.equal(s.score, expected);
+});
+
+test('shootMissile ja chargeStep', () => {
+  let s = U.shootMissile(U.newGameState());
+  assert.equal(s.score, 5);
+  assert.ok(Math.abs(s.charge - 2000 / 30000) < 1e-9);
+  assert.equal(U.chargeStep(U.newGameState(), 30000).charge, 1);
+  assert.equal(U.chargeStep(U.chargeStep(U.newGameState(), 29000), 5000).charge, 1);
+});
+
+test('superBlast: loendurid, laeng, tase, võit', () => {
+  let s = U.superBlast(Object.assign(U.newGameState(), { charge: 1 }), ['cow', 'man', 'cow']);
+  assert.equal(s.cows, 2); assert.equal(s.men, 1); assert.equal(s.charge, 0);
+  s = U.superBlast(times(18, 'cow'), ['cow', 'man', 'cow']);
+  assert.equal(s.level, 2); assert.equal(s.levelUp, true);
+  s = U.superBlast(times(98, 'cow'), ['cow', 'cow', 'cow', 'man', 'man']);
+  assert.equal(s.won, true); assert.ok(s.lives <= 5);
+});
+
+test('zapHits: ufost paremal ja kõrgus lõikub (±3)', () => {
+  const ufo = { x: 10, y: 50, w: 24, h: 12 };
+  assert.equal(U.zapHits(ufo, { x: 60, y: 55, w: 6, h: 3 }), true);
+  assert.equal(U.zapHits(ufo, { x: 60, y: 70, w: 6, h: 3 }), false);
+  assert.equal(U.zapHits(ufo, { x: 60, y: 64, w: 6, h: 3 }), true);
+  assert.equal(U.zapHits(ufo, { x: 0, y: 55, w: 6, h: 3 }), false);
 });
