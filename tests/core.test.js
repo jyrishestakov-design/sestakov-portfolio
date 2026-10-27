@@ -14,6 +14,16 @@ test('mergeLocale: nimekirjad ühendatakse indeksi järgi', () => {
   );
 });
 
+test('mergeLocale: id-ga kirjed ühendatakse id järgi (järjekord võib erineda)', () => {
+  assert.deepEqual(
+    C.mergeLocale(
+      { s: [{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }] },
+      { s: [{ id: 'b', title: 'B-en' }, { id: 'zz', title: 'kustutatud' }] }
+    ),
+    { s: [{ id: 'a', title: 'A' }, { id: 'b', title: 'B-en' }] }
+  );
+});
+
 test('pickLang: URL, salvestatud, lubatud keeled', () => {
   assert.equal(C.pickLang('?lang=en', 'fi', ['et', 'en', 'fi']), 'en');
   assert.equal(C.pickLang('?lang=xx', null, ['et', 'en']), 'et');

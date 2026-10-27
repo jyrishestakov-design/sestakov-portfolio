@@ -22,7 +22,13 @@
     if (isEmpty(over)) return base;
     if (Array.isArray(base)) {
       if (!Array.isArray(over)) return base;
-      return base.map(function (b, i) { return mergeLocale(b, over[i]); });
+      // id-ga kirjed (sektsioonid) seotakse id järgi, et ümberjärjestamine ei segaks tõlkeid
+      var byId = {};
+      over.forEach(function (o) { if (isObj(o) && !isEmpty(o.id)) byId[o.id] = o; });
+      return base.map(function (b, i) {
+        if (isObj(b) && !isEmpty(b.id)) return mergeLocale(b, byId[b.id] || (isObj(over[i]) && isEmpty(over[i].id) ? over[i] : undefined));
+        return mergeLocale(b, over[i]);
+      });
     }
     if (isObj(base)) {
       if (!isObj(over)) return base;

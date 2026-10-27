@@ -727,6 +727,538 @@
     },
     "design": {}
   },
-  "en": {},
-  "fi": {}
+  "en": {
+    "settings": {
+      "roles": [
+        "Computer graphics · motion design",
+        "3D animation · VFX",
+        "Editing · camera"
+      ],
+      "location": "Saaremaa, Estonia",
+      "statement": "Over 30 years in television, film and advertising: from news graphics at ERR and animation for commercial TV to VFX, editing and song festival visuals for feature films and major events."
+    },
+    "sections": [
+      {
+        "id": "ride"
+      },
+      {
+        "id": "top"
+      },
+      {
+        "title": "Shot Log",
+        "countLabel": "Selected works 1999–2025",
+        "menuLabel": "Shot Log",
+        "id": "log"
+      },
+      {
+        "title": "Reel",
+        "countLabel": "YouTube",
+        "menuLabel": "Reel",
+        "heading": "Work on YouTube",
+        "note": "A selection of my videos and animations. All videos: youtube.com/@jurishestakov7458",
+        "id": "reel"
+      },
+      {
+        "title": "Websites",
+        "menuLabel": "Web",
+        "id": "web"
+      },
+      {
+        "title": "Skills",
+        "countLabel": "Over 30 years",
+        "menuLabel": "Skills",
+        "items": [
+          {
+            "kicker": "01 — Motion & VFX",
+            "title": "Motion graphics",
+            "points": [
+              "Broadcast graphics, titles and motion design",
+              "VFX and compositing for film",
+              "Commercials and event visuals",
+              "After Effects, Fusion, Motion"
+            ]
+          },
+          {
+            "kicker": "02 — 3D",
+            "title": "3D animation",
+            "points": [
+              "Modelling, animation, rendering",
+              "Virtual studios and visualisation",
+              "Blender, 3ds Max",
+              "AI tools for image and video creation"
+            ]
+          },
+          {
+            "kicker": "03 — Film",
+            "title": "Editing and camera",
+            "points": [
+              "Editing documentaries and feature films",
+              "Camera work, interviews",
+              "Directing: commercials and short films",
+              "DaVinci Resolve, Premiere Pro, Final Cut Pro"
+            ]
+          }
+        ],
+        "id": "caps"
+      },
+      {
+        "title": "Files",
+        "countLabel": "Downloads",
+        "menuLabel": "Files",
+        "id": "files"
+      },
+      {
+        "title": "Index",
+        "countLabel": "Links",
+        "menuLabel": "Index",
+        "links": [
+          {
+            "label": "IMDb — Jüri Shestakov"
+          },
+          {
+            "label": "Estonian Film Database"
+          },
+          {
+            "label": "LinkedIn"
+          },
+          {
+            "label": "YouTube — work"
+          }
+        ],
+        "id": "index"
+      }
+    ],
+    "works": [
+      {
+        "roles": "Promotional materials · animated visuals",
+        "role": "Animated visuals, promotional materials (with Marko Kekishev)",
+        "type": "Major event"
+      },
+      {
+        "roles": "VFX · animation",
+        "role": "Promotional materials, VFX and animation (with Mart Andersson)",
+        "type": "Major event"
+      },
+      {
+        "roles": "VFX · music videos",
+        "role": "VFX, music videos",
+        "type": "AI-created theatre performance"
+      },
+      {
+        "roles": "Title animation · VFX",
+        "role": "Title animation, VFX",
+        "type": "Feature film"
+      },
+      {
+        "roles": "VFX",
+        "role": "VFX",
+        "type": "Film"
+      },
+      {
+        "roles": "VFX · animation",
+        "role": "VFX, animation",
+        "type": "Short clips"
+      },
+      {
+        "roles": "VFX · multimedia",
+        "role": "VFX",
+        "type": "Multimedia performance"
+      },
+      {
+        "roles": "Graphics · UI/UX",
+        "role": "Graphics, UI/UX",
+        "type": "Point-and-click adventure game"
+      },
+      {
+        "roles": "VFX · lead editor",
+        "role": "VFX, lead editor",
+        "type": "Feature-length documentary"
+      },
+      {
+        "roles": "VFX · editing",
+        "role": "VFX, editing",
+        "type": "Concert performance, St Nicholas Church"
+      },
+      {
+        "roles": "Camera · VFX · editing",
+        "role": "Camera, VFX, editing",
+        "type": "Music documentary"
+      },
+      {
+        "roles": "Camera · editor · ETV",
+        "role": "Camera, editor",
+        "type": "TV documentary, 28 min (ETV)"
+      },
+      {
+        "roles": "Editing · VFX",
+        "role": "Editing, VFX",
+        "type": "Film"
+      },
+      {
+        "roles": "Editing · VFX · feature film",
+        "role": "Editing, VFX",
+        "type": "Feature film"
+      },
+      {
+        "roles": "Directing · editing · VFX",
+        "role": "Director, editor, VFX",
+        "type": "Short film, premiered at Sõprus cinema"
+      },
+      {
+        "roles": "VFX · animation · editing",
+        "role": "VFX, animation, editing",
+        "type": "Feature film"
+      },
+      {
+        "roles": "Editing · directing · graphics",
+        "role": "Editing, directing, graphics",
+        "type": "TV series (8 + 7 episodes)"
+      },
+      {
+        "roles": "Animated backgrounds",
+        "role": "Animated stage backgrounds",
+        "type": "TV broadcast, Tallinn"
+      },
+      {
+        "roles": "Graphics · print ads",
+        "role": "Graphics, print advertising",
+        "type": "TV series, 64 episodes"
+      },
+      {
+        "roles": "Graphics · Discovery",
+        "role": "Graphics",
+        "type": "Discovery series"
+      },
+      {
+        "roles": "Animation · VFX",
+        "role": "Animation, VFX",
+        "type": "Multimedia performance, Von Krahl Theatre"
+      },
+      {
+        "roles": "VFX",
+        "role": "VFX",
+        "type": "Sci-fi series, 8 episodes"
+      }
+    ],
+    "websites": {
+      "note": "Websites I have designed and built with a content management system, so the owner can update the content themselves.",
+      "items": [
+        {
+          "client": "Own project",
+          "type": "Photography and online shop",
+          "description": "Clouds photographed in nature, printed on products to order. Cloud series, gallery, online shop and enquiry form; bilingual (ET/EN)."
+        },
+        {
+          "client": "Saaremaa motorcycle club Ösel MC",
+          "type": "Club website",
+          "description": "Site for the motorcycle club and its annual international MOTOTOOBER rally: news, calendar, gallery, history and a members’ forum."
+        },
+        {
+          "client": "Kuressaare Art School",
+          "type": "School website",
+          "description": "New bilingual site with content management: news, teachers, gallery and pages built from content blocks. Galleries migrated from the old site."
+        },
+        {
+          "client": "Mixed folk dance group Kakerdaja",
+          "type": "Society website",
+          "description": "Dance group site: news, performances, gallery and joining info. Old posts from 2008 onwards migrated from the blog."
+        },
+        {
+          "client": "Artist Sandra Jõgeva",
+          "type": "Artist portfolio",
+          "description": "Portfolio of the artist’s works, exhibitions and press coverage, which the artist can update through a simple admin."
+        },
+        {
+          "client": "Art Container",
+          "type": "Art project archive",
+          "description": "Rescue of an old PHP site: 233 pages (ET + EN) migrated with the original look into an editable static site with a CMS."
+        },
+        {
+          "client": "Writer Made Luiga (Mudlum)",
+          "type": "Author website and bookshop",
+          "description": "Site of a writer, critic and performer: books, performances, press coverage, news and a bookshop with bank-link payments."
+        },
+        {
+          "client": "Muhu Wine Farm",
+          "type": "Tourism farm and wine shop",
+          "description": "New site for the wine farm with bookings and a wine shop: accommodation, restaurant, tastings and Modena payments."
+        },
+        {
+          "client": "Learning environment",
+          "type": "3D learning platform",
+          "description": "Blender learning environment for students: tutorials, videos, student portfolios, files and messages; with login."
+        }
+      ]
+    },
+    "files": {
+      "note": "Public files below can be downloaded freely. Clients: you will find private files in the client area with your code and password."
+    }
+  },
+  "fi": {
+    "settings": {
+      "roles": [
+        "Tietokonegrafiikka · motion design",
+        "3D-animaatio · VFX",
+        "Leikkaus · kuvaus"
+      ],
+      "location": "Saarenmaa, Viro",
+      "statement": "Yli 30 vuotta televisio-, elokuva- ja mainostyötä: ERR:n uutisgrafiikasta ja kaupallisen television animaatioista pitkien elokuvien VFX:ään, leikkaukseen ja laulujuhlien visuaaleihin."
+    },
+    "sections": [
+      {
+        "id": "ride"
+      },
+      {
+        "id": "top"
+      },
+      {
+        "title": "Shot Log",
+        "countLabel": "Valitut työt 1999–2025",
+        "menuLabel": "Shot Log",
+        "id": "log"
+      },
+      {
+        "title": "Reel",
+        "countLabel": "YouTube",
+        "menuLabel": "Reel",
+        "heading": "Töitä YouTubessa",
+        "note": "Valikoima videoitani ja animaatioitani. Kaikki videot: youtube.com/@jurishestakov7458",
+        "id": "reel"
+      },
+      {
+        "title": "Verkkosivustot",
+        "menuLabel": "Verkko",
+        "id": "web"
+      },
+      {
+        "title": "Osaaminen",
+        "countLabel": "Yli 30 vuotta",
+        "menuLabel": "Osaaminen",
+        "items": [
+          {
+            "kicker": "01 — Motion & VFX",
+            "title": "Liikegrafiikka",
+            "points": [
+              "Lähetysgrafiikka, tekstit ja motion design",
+              "VFX ja compositing elokuviin",
+              "Mainokset ja tapahtumien visuaalit",
+              "After Effects, Fusion, Motion"
+            ]
+          },
+          {
+            "kicker": "02 — 3D",
+            "title": "3D-animaatio",
+            "points": [
+              "Mallinnus, animaatio, renderöinti",
+              "Virtuaalistudiot ja visualisointi",
+              "Blender, 3ds Max",
+              "Tekoälytyökalut kuvan- ja videontekoon"
+            ]
+          },
+          {
+            "kicker": "03 — Film",
+            "title": "Leikkaus ja kuvaus",
+            "points": [
+              "Dokumentti- ja pitkien elokuvien leikkaus",
+              "Kuvaustyö, haastattelut",
+              "Ohjaus: mainokset ja lyhytelokuvat",
+              "DaVinci Resolve, Premiere Pro, Final Cut Pro"
+            ]
+          }
+        ],
+        "id": "caps"
+      },
+      {
+        "title": "Tiedostot",
+        "countLabel": "Lataukset",
+        "menuLabel": "Tiedostot",
+        "id": "files"
+      },
+      {
+        "title": "Index",
+        "countLabel": "Linkit",
+        "menuLabel": "Index",
+        "links": [
+          {
+            "label": "IMDb — Jüri Shestakov"
+          },
+          {
+            "label": "Viron elokuvatietokanta"
+          },
+          {
+            "label": "LinkedIn"
+          },
+          {
+            "label": "YouTube — työt"
+          }
+        ],
+        "id": "index"
+      }
+    ],
+    "works": [
+      {
+        "roles": "Mainosmateriaalit · animoidut visuaalit",
+        "role": "Animoidut visuaalit, mainosmateriaalit (yhdessä Marko Kekishevin kanssa)",
+        "type": "Suurtapahtuma"
+      },
+      {
+        "roles": "VFX · animaatio",
+        "role": "Mainosmateriaalit, VFX ja animaatio (yhdessä Mart Anderssonin kanssa)",
+        "type": "Suurtapahtuma"
+      },
+      {
+        "roles": "VFX · musiikkivideot",
+        "role": "VFX, musiikkivideot",
+        "type": "Tekoälyn luoma teatteriesitys"
+      },
+      {
+        "roles": "Alkutekstien animaatio · VFX",
+        "role": "Alkutekstien animaatio, VFX",
+        "type": "Pitkä elokuva"
+      },
+      {
+        "roles": "VFX",
+        "role": "VFX",
+        "type": "Elokuva"
+      },
+      {
+        "roles": "VFX · animaatio",
+        "role": "VFX, animaatio",
+        "type": "Lyhyet klipit"
+      },
+      {
+        "roles": "VFX · multimedia",
+        "role": "VFX",
+        "type": "Multimediaesitys"
+      },
+      {
+        "roles": "Grafiikka · UI/UX",
+        "role": "Grafiikka, UI/UX",
+        "type": "Point-and-click-seikkailupeli"
+      },
+      {
+        "roles": "VFX · vastaava leikkaaja",
+        "role": "VFX, vastaava leikkaaja",
+        "type": "Pitkä dokumenttielokuva"
+      },
+      {
+        "roles": "VFX · leikkaus",
+        "role": "VFX, leikkaus",
+        "type": "Konserttiesitys, Nigulisten kirkko"
+      },
+      {
+        "roles": "Kuvaus · VFX · leikkaus",
+        "role": "Kuvaus, VFX, leikkaus",
+        "type": "Musiikkidokumentti"
+      },
+      {
+        "roles": "Kuvaus · leikkaaja · ETV",
+        "role": "Kuvaaja, leikkaaja",
+        "type": "TV-dokumentti, 28 min (ETV)"
+      },
+      {
+        "roles": "Leikkaus · VFX",
+        "role": "Leikkaus, VFX",
+        "type": "Elokuva"
+      },
+      {
+        "roles": "Leikkaus · VFX · pitkä elokuva",
+        "role": "Leikkaus, VFX",
+        "type": "Pitkä elokuva"
+      },
+      {
+        "roles": "Ohjaus · leikkaus · VFX",
+        "role": "Ohjaaja, leikkaaja, VFX",
+        "type": "Lyhytelokuva, ensi-ilta Sõprus-elokuvateatterissa"
+      },
+      {
+        "roles": "VFX · animaatio · leikkaus",
+        "role": "VFX, animaatio, leikkaus",
+        "type": "Pitkä elokuva"
+      },
+      {
+        "roles": "Leikkaus · ohjaus · grafiikka",
+        "role": "Leikkaus, ohjaus, grafiikka",
+        "type": "TV-sarjat (8 + 7 jaksoa)"
+      },
+      {
+        "roles": "Animoidut taustat",
+        "role": "Animoidut lavataustat",
+        "type": "TV-lähetys, Tallinna"
+      },
+      {
+        "roles": "Grafiikka · printtimainokset",
+        "role": "Grafiikka, printtimainokset",
+        "type": "TV-sarja, 64 jaksoa"
+      },
+      {
+        "roles": "Grafiikka · Discovery",
+        "role": "Grafiikka",
+        "type": "Discovery-sarjat"
+      },
+      {
+        "roles": "Animaatio · VFX",
+        "role": "Animaatio, VFX",
+        "type": "Multimediaesitys, Von Krahlin teatteri"
+      },
+      {
+        "roles": "VFX",
+        "role": "VFX",
+        "type": "Scifi-sarja, 8 jaksoa"
+      }
+    ],
+    "websites": {
+      "note": "Verkkosivustot, jotka olen suunnitellut ja toteuttanut sisällönhallinnan kanssa, jotta omistaja voi päivittää sisältöä itse.",
+      "items": [
+        {
+          "client": "Oma projekti",
+          "type": "Valokuvaus ja verkkokauppa",
+          "description": "Luonnossa kuvattuja pilviä tilattaviin tuotteisiin painettuna. Pilvisarjat, galleria, verkkokauppa ja yhteydenottolomake; kaksikielinen (ET/EN)."
+        },
+        {
+          "client": "Saarenmaan moottoripyöräkerho Ösel MC",
+          "type": "Kerhon kotisivu",
+          "description": "Moottoripyöräkerhon ja sen vuosittaisen kansainvälisen MOTOTOOBER-tapaamisen sivusto: uutiset, kalenteri, galleria, historia ja jäsenten foorumi."
+        },
+        {
+          "client": "Kuressaaren taidekoulu",
+          "type": "Koulun kotisivu",
+          "description": "Uusi kaksikielinen sivusto sisällönhallinnalla: uutiset, opettajat, galleria ja sisältölohkoista kootut sivut. Vanhan sivuston galleriat siirretty."
+        },
+        {
+          "client": "Sekakansantanssiryhmä Kakerdaja",
+          "type": "Yhdistyksen kotisivu",
+          "description": "Tanssiryhmän sivusto: uutiset, esiintymiset, galleria ja liittymisohjeet. Vanhat kirjoitukset vuodesta 2008 siirretty blogista."
+        },
+        {
+          "client": "Taiteilija Sandra Jõgeva",
+          "type": "Taiteilijan portfolio",
+          "description": "Taiteilijan teosten, näyttelyiden ja mediakuvausten portfolio, jota taiteilija voi päivittää yksinkertaisen hallintapaneelin kautta."
+        },
+        {
+          "client": "Art Container",
+          "type": "Taideprojektin arkisto",
+          "description": "Vanhan PHP-sivuston pelastus: 233 sivua (ET + EN) siirretty alkuperäisellä ulkoasulla muokattavaksi staattiseksi sivustoksi sisällönhallinnan kera."
+        },
+        {
+          "client": "Kirjailija Made Luiga (Mudlum)",
+          "type": "Kirjailijan kotisivu ja kirjakauppa",
+          "description": "Kirjailijan, kriitikon ja esiintyjän sivusto: kirjat, esiintymiset, mediakuvaukset, uutiset ja kirjakauppa pankkimaksuilla."
+        },
+        {
+          "client": "Muhun viinitila",
+          "type": "Matkailutila ja viinikauppa",
+          "description": "Viinitilan uusi sivusto varauksineen ja viinikauppoineen: majoitus, ravintola, viininmaistelut ja Modena-maksut."
+        },
+        {
+          "client": "Oppimisympäristö",
+          "type": "3D-oppimisalusta",
+          "description": "Blenderin oppimisympäristö opiskelijoille: opetusohjelmat, videot, opiskelijoiden portfoliot, tiedostot ja viestit; kirjautumisella."
+        }
+      ]
+    },
+    "files": {
+      "note": "Alla olevat julkiset tiedostot voi ladata vapaasti. Asiakkaat: yksityiset tiedostot löydät asiakasalueelta koodillasi ja salasanallasi."
+    }
+  }
 }
