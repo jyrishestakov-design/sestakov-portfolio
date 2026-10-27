@@ -166,6 +166,28 @@
 
   // ---- renderdajad: (section, data) -> HTMLElement
   var gameNode = null;   // mäng käivitatakse üks kord; keelevahetusel kasutatakse sama sõlme
+  var gamesNode = null;
+
+  var GAME_TEXT_KEYS = ['ufoStart', 'ufoStartTouch', 'ufoHelp', 'ufoHelpTouch', 'ufoAgain', 'ufoAgainTouch',
+    'ufoWin', 'ufoOver', 'gamesBack', 'gamesPickViking', 'gamesPickUfo'];
+  function gameTexts() {
+    var t = {};
+    GAME_TEXT_KEYS.forEach(function (k) { t[k] = S(k); });
+    return t;
+  }
+
+  // Mänguriba: üks mäng täislaiuses (kahe mängu valikuvaade: js/games.js)
+  function startGameStrip(strip, opts) {
+    if (window.startGames) return window.startGames(strip, opts);
+    var game = opts.ufo && !opts.viking ? 'ufo' : 'viking';
+    strip.dataset.view = game;
+    var half = el('div', 'gm-half'); half.dataset.game = game;
+    var mount = el('div');
+    if (game === 'viking') mount.id = 'viking-runner'; else mount.className = 'ufo-runner';
+    half.appendChild(mount); strip.appendChild(half);
+    var api = game === 'ufo' ? window.startUfo(mount, opts.texts) : (window.startViking(mount), null);
+    return { setTexts: function (t) { if (api) api.setTexts(t); } };
+  }
   var RENDERERS = {
     game: function (section) {
       if (gameNode) { gameNode.setAttribute('aria-label', S('gameLabel')); return gameNode; }
@@ -177,6 +199,25 @@
       sec._afterInsert = function () {
         sec._afterInsert = null;
         if (window.startViking) window.startViking(mount);
+      };
+      return sec;
+    },
+
+    // Minimängud (Viking Rider ja/või UFO). Riba luuakse üks kord; keelevahetusel uuendatakse ainult tekstid.
+    games: function (section) {
+      var texts = gameTexts();
+      if (gamesNode) {
+        gamesNode.setAttribute('aria-label', S('gamesLabel'));
+        if (gamesNode._api && gamesNode._api.setTexts) gamesNode._api.setTexts(texts);
+        return gamesNode;
+      }
+      var sec = gamesNode = el('section', 'game-strip games-strip');
+      sec.id = section.id || 'ride';
+      sec.setAttribute('aria-label', S('gamesLabel'));
+      var opts = { viking: section.viking !== false, ufo: section.ufo !== false, texts: texts };
+      sec._afterInsert = function () {
+        sec._afterInsert = null;
+        sec._api = startGameStrip(sec, opts);
       };
       return sec;
     },

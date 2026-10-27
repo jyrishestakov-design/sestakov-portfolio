@@ -24,7 +24,13 @@
       gameLabel: 'Minimäng: Viking Rider',
       contact: 'Kontakt',
       langLabel: 'Keel',
-      close: 'Sulge'
+      close: 'Sulge',
+      ufoStart: 'TÜHIK — MÄNGI', ufoStartTouch: 'PUUDUTA — MÄNGI',
+      ufoHelp: '↑ ↓ lenda · ← → kiirus · X laserkiir', ufoHelpTouch: 'ülal: üles · all: alla · paremal: kiir',
+      ufoAgain: 'uuesti: tühik', ufoAgainTouch: 'uuesti: puuduta',
+      ufoWin: 'MISSION COMPLETE', ufoOver: 'G A M E   O V E R',
+      gamesBack: '← Mängud', gamesPickViking: '▶ VIKING RIDER', gamesPickUfo: '▶ UFO',
+      gamesLabel: 'Minimängud: Viking Rider ja UFO'
     },
     en: {
       fill: '— to be added —',
@@ -48,7 +54,13 @@
       gameLabel: 'Mini game: Viking Rider',
       contact: 'Contact',
       langLabel: 'Language',
-      close: 'Close'
+      close: 'Close',
+      ufoStart: 'SPACE — PLAY', ufoStartTouch: 'TAP — PLAY',
+      ufoHelp: '↑ ↓ fly · ← → speed · X laser beam', ufoHelpTouch: 'top: up · bottom: down · right: beam',
+      ufoAgain: 'again: space', ufoAgainTouch: 'again: tap',
+      ufoWin: 'MISSION COMPLETE', ufoOver: 'G A M E   O V E R',
+      gamesBack: '← Games', gamesPickViking: '▶ VIKING RIDER', gamesPickUfo: '▶ UFO',
+      gamesLabel: 'Mini games: Viking Rider and UFO'
     },
     fi: {
       fill: '— lisätään —',
@@ -72,7 +84,13 @@
       gameLabel: 'Minipeli: Viking Rider',
       contact: 'Yhteystiedot',
       langLabel: 'Kieli',
-      close: 'Sulje'
+      close: 'Sulje',
+      ufoStart: 'VÄLILYÖNTI — PELAA', ufoStartTouch: 'NAPAUTA — PELAA',
+      ufoHelp: '↑ ↓ lennä · ← → nopeus · X lasersäde', ufoHelpTouch: 'ylhäällä: ylös · alhaalla: alas · oikealla: säde',
+      ufoAgain: 'uudelleen: välilyönti', ufoAgainTouch: 'uudelleen: napauta',
+      ufoWin: 'MISSION COMPLETE', ufoOver: 'G A M E   O V E R',
+      gamesBack: '← Pelit', gamesPickViking: '▶ VIKING RIDER', gamesPickUfo: '▶ UFO',
+      gamesLabel: 'Minipelit: Viking Rider ja UFO'
     }
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.SiteStrings = api;

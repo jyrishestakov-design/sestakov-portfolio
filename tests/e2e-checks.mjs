@@ -150,3 +150,44 @@ export async function review({ browser, openPage, t, eq, ok, VIEWS }) {
     await p.close();
   });
 }
+
+// ---- UFO-mäng (ainult UFO sees)
+const UFO_INIT = () => { window.__UFO_TEST__ = true; };
+export async function ufo({ browser, openPage, t, eq, ok, VIEWS }) {
+  const dark = VIEWS[0];
+  const dbg = (p, expr) => p.evaluate(expr);
+
+  await t('UFO: käivitub, tühik alustab, kiir teleporteerib', async () => {
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init: UFO_INIT });
+    await p.waitForSelector('.ufo-runner canvas');
+    ok(!(await p.$('#viking-runner')), 'Viking Rider pole lehel');
+    await p.waitForFunction(() => window.__ufoDebug);
+    eq(await dbg(p, () => __ufoDebug.mode()), 'demo', 'algus demo');
+    await p.keyboard.press('Space');
+    eq(await dbg(p, () => __ufoDebug.mode()), 'play', 'tühik → play');
+    await dbg(p, () => __ufoDebug.spawnBelow('cow'));
+    await p.keyboard.press('KeyX');
+    await p.waitForTimeout(700);
+    eq(await dbg(p, () => __ufoDebug.state().cows), 1, 'lehm emalaevas');
+    eq(await dbg(p, () => __ufoDebug.state().total), 1, 'kokku');
+    // jahtumise ajal ei tabata
+    await dbg(p, () => __ufoDebug.spawnBelow('man'));
+    await p.keyboard.press('KeyX');
+    await p.waitForTimeout(150);
+    eq(await dbg(p, () => __ufoDebug.state().men), 0, 'jahtumise ajal mees jääb maha');
+    await p.waitForTimeout(1000);
+    await dbg(p, () => __ufoDebug.spawnBelow('man'));
+    await p.keyboard.press('KeyX');
+    await p.waitForTimeout(700);
+    eq(await dbg(p, () => __ufoDebug.state().men), 1, 'mees emalaevas');
+    eq(p.errors, [], 'konsooli vead');
+    await p.close();
+  });
+
+  await t('UFO telefonis: ei teki horisontaalset kerimist', async () => {
+    const p = await openPage(browser, VIEWS[2], { fixture: 'ufo-only.json' });
+    await p.waitForSelector('.ufo-runner canvas');
+    eq(await p.evaluate(() => document.documentElement.scrollWidth), 390, 'scrollWidth');
+    await p.close();
+  });
+}

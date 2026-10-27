@@ -30,8 +30,9 @@ async function freeze(page) {
   await page.waitForTimeout(300);
 }
 
-async function openPage(browser, view, { fixture, query = '' } = {}) {
+async function openPage(browser, view, { fixture, query = '', init } = {}) {
   const page = await browser.newPage({ viewport: { width: view.width, height: 900 }, colorScheme: view.scheme });
+  if (init) await page.addInitScript(init);
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/fonts\.g|net::|Failed to load resource/.test(m.text())) errors.push(m.text()); });
