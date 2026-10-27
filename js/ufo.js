@@ -66,9 +66,19 @@ window.startUfo = function (mount, texts) {
   var UFO_A = sprite(UFO_ROWS, true, { L: '#ff4d6d' });
   var UFO_B = sprite(UFO_ROWS, true, { L: '#ffd166' });
   var COW = sprite(COW_ROWS, false);
-  var MAN = sprite(MAN_ROWS, false);
+  // MIB jooksuanimatsioon: 4 kaadrit, vahetuvad ainult jalgade (viimased 4) read
+  var LEGS = [
+    ['.SS..SS.', '.SS..SS.', '.SS..SS.', 'bbb..bbb'],
+    ['..SSSS..', '.SS..SS.', 'SS....SS', 'bb....bb'],
+    ['...SS...', '...SS...', '..SSSS..', '..bbbb..'],
+    ['..SSSS..', '.SS..SS.', '.SS...SS', 'bb....bb']
+  ];
+  var MAN_RUN = LEGS.map(function (legs) { return sprite(MAN_ROWS.slice(0, 12).concat(legs), false); });
+  var MAN = MAN_RUN[0];
+  var MAN_SCALE = 1.4, MAN_RUN_SPEED = 0.4;   // MIB-mehed on suuremad ja jooksevad (põgenevad)
   var UFO_W = UFO_A.width, UFO_H = UFO_A.height;
   var COW_SIZES = [1, 1.5, 2];
+  var MISSILE_W = 6, MISSILE_H = 3;
 
   // ---------- canvas ----------
   var cv = document.createElement('canvas');
@@ -93,23 +103,38 @@ window.startUfo = function (mount, texts) {
 
   // ---------- olek ----------
   var mode = 'demo';                // 'demo' | 'play' | 'over' | 'win'
-  var state, ufo, obs, speed, nextGap, lastBeamAt, beamUntil, groundX, overAt, win;
+  var state, ufo, obs, speed, nextGap, lastBeamAt, beamUntil, groundX, overAt, win, banner, frame;
   var keyUp = false, keyDown = false, keyFaster = false, keySlower = false;
+  var hi = 0;
+  try { hi = +localStorage.getItem('ufoHi') || 0; } catch (e) {}
 
   function reset() {
     state = U.newGameState();
     ufo = { x: Math.round(LW * UFO_X), y: 40, vy: 0 };
     obs = []; speed = SPEED_START; nextGap = 60; lastBeamAt = -1e9; beamUntil = 0; groundX = 0;
-    win = null;
+    win = null; banner = null; frame = 0;
     keyUp = keyDown = keyFaster = keySlower = false;   // demo-autopiloodi klahvid ei tohi mängu jääda
   }
   reset();
 
-  function ufoBox() { return { x: ufo.x + 2, y: ufo.y + 1, w: UFO_W - 4, h: UFO_H - 2 }; }
+  // Ufo kasvab iga tasemega
+  function uSc() { return U.UFO_SCALE[state.level - 1] || 1; }
+  function uW() { return UFO_W * uSc(); }
+  function uH() { return UFO_H * uSc(); }
+  function lvlF() { return state.level - 1; }
+
+  function ufoBox() { return { x: ufo.x + 2, y: ufo.y + 1, w: uW() - 4, h: uH() - 2 }; }
   function objBox(o) { return { x: o.x, y: GROUND - o.h, w: o.w, h: o.h }; }
 
+  // Mängu lõpp (kaotus või võit): rekord brauserisse
+  function saveHi() {
+    var s = Math.floor(state.score);
+    if (s > hi) { hi = s; try { localStorage.setItem('ufoHi', String(hi)); } catch (e) {} }
+  }
+  function gameOver(now) { mode = 'over'; overAt = now; keyUp = keyDown = false; saveHi(); }
+
   function makeObj(kind, x) {
-    if (kind === 'man') return { kind: 'man', x: x, w: MAN.width, h: MAN.height, s: 1, rise: -1 };
+    if (kind === 'man') return { kind: 'man', x: x, w: Math.round(MAN.width * MAN_SCALE), h: Math.round(MAN.height * MAN_SCALE), s: MAN_SCALE, rise: -1 };
     var s = COW_SIZES[(Math.random() * COW_SIZES.length) | 0];
     return { kind: 'cow', x: x, w: Math.round(COW.width * s), h: Math.round(COW.height * s), s: s, rise: -1 };
   }
@@ -121,34 +146,37 @@ window.startUfo = function (mount, texts) {
 
   // ---------- uuendus ----------
   function update(dt, now) {
+    frame += dt;
+    if (banner) { banner.t += dt; if (banner.t > 120) banner = null; }
     if (mode === 'win') { updateWin(dt); return; }
     ufo.x = Math.round(LW * UFO_X);
 
-    // kiirus
+    // kiirus (ülempiir kasvab tasemega)
+    var speedMax = SPEED_MAX + lvlF() * 0.35;
     if (mode === 'play') {
       if (keyFaster) speed = Math.min(SPEED_TOP, speed + SPEED_STEP * dt);
       else if (keySlower) speed = Math.max(SPEED_MIN, speed - SPEED_STEP * dt);
-      else if (speed < SPEED_MAX) speed += SPEED_ACC * dt;
+      else if (speed < speedMax) speed += SPEED_ACC * dt;
     }
 
     // lend: ↑ ↓ või automaatne vajumine
     if (mode === 'demo') demoPilot(now);
     if (keyUp) ufo.vy = -LIFT; else if (keyDown) ufo.vy = LIFT;
     else ufo.vy = Math.min(SINK_MAX, ufo.vy + SINK_ACC * dt);
-    ufo.y = Math.max(Y_MIN, Math.min(GROUND - UFO_H, ufo.y + ufo.vy * dt));
+    ufo.y = Math.max(Y_MIN, Math.min(GROUND - uH(), ufo.y + ufo.vy * dt));
 
-    // takistused
+    // takistused (tihedus ja MIB osakaal kasvavad tasemega)
     var move = speed * dt;
     groundX = (groundX + move) % 8;
     if (!TEST) {
       nextGap -= move;
       if (nextGap <= 0) {
-        obs.push(makeObj(Math.random() < 0.4 ? 'man' : 'cow', LW + 10));
-        nextGap = 70 + Math.random() * 110;
+        obs.push(makeObj(Math.random() < 0.4 + lvlF() * 0.05 ? 'man' : 'cow', LW + 10));
+        nextGap = (70 + Math.random() * 110) * (1 - lvlF() * 0.1);
       }
     }
     var beamOn = now < beamUntil, ub = ufoBox();
-    var beamSrc = { x: ufo.x + 4, w: UFO_W - 8, bottom: ufo.y + UFO_H };
+    var beamSrc = { x: ufo.x + 4 * uSc(), w: uW() - 8 * uSc(), bottom: ufo.y + uH() };
     for (var i = obs.length - 1; i >= 0; i--) {
       var o = obs[i];
       if (o.rise >= 0) {                                    // teleporteerumas
@@ -156,20 +184,30 @@ window.startUfo = function (mount, texts) {
         if (o.rise >= RISE_MS) obs.splice(i, 1);
         continue;
       }
-      o.x -= move;
+      o.x -= move + (o.kind === 'man' ? MAN_RUN_SPEED * dt : 0);
       if (o.x + o.w < -10) { obs.splice(i, 1); continue; }
       if (beamOn && U.beamHits(beamSrc, { x: o.x, w: o.w, top: GROUND - o.h }, BEAM_LEN)) {
         o.rise = 0;
-        state = U.teleport(state, o.kind);
-        if (state.won && mode === 'play') { startWin(); return; }
-        if (state.won) state = U.newGameState();           // demo jookseb lõputult
+        teleported(o.kind);
+        if (mode === 'win') return;
         continue;
       }
       if (mode === 'play' && U.collides(ub, objBox(o))) {
         state = U.hit(state, now);                          // objekt jääb terveks
-        if (state.over) { mode = 'over'; overAt = now; keyUp = keyDown = false; }
+        if (state.over) gameOver(now);
       }
     }
+  }
+
+  // Objekt emalaevas: punktid, tase, võit
+  function teleported(kind) {
+    state = U.teleport(state, kind);
+    afterScore();
+  }
+  function afterScore() {
+    if (state.won && mode === 'play') { startWin(); return; }
+    if (state.won) { state = U.newGameState(); return; }   // demo jookseb lõputult
+    if (state.levelUp && mode === 'play') banner = { t: 0, s: 'LEVEL ' + state.level };
   }
 
   // Demo: ufo lendab ise objektide kohale ja tõmbab need üles
@@ -180,8 +218,8 @@ window.startUfo = function (mount, texts) {
       if (o.rise < 0 && o.x + o.w > ufo.x - 4) { next = o; break; }
     }
     if (next) {
-      target = GROUND - next.h - UFO_H - 22;
-      if (U.beamHits({ x: ufo.x + 4, w: UFO_W - 8, bottom: ufo.y + UFO_H }, { x: next.x, w: next.w, top: GROUND - next.h }, BEAM_LEN)) fire(now);
+      target = GROUND - next.h - uH() - 22;
+      if (U.beamHits({ x: ufo.x + 4, w: uW() - 8, bottom: ufo.y + uH() }, { x: next.x, w: next.w, top: GROUND - next.h }, BEAM_LEN)) fire(now);
     }
     keyUp = ufo.y > target + 2; keyDown = ufo.y < target - 2;
   }
@@ -190,6 +228,7 @@ window.startUfo = function (mount, texts) {
   function startWin() {
     mode = 'win'; keyUp = keyDown = false;
     win = { t: 0, shipY: -30 };
+    saveHi();
   }
   function updateWin(dt) {
     win.t += dt;
@@ -215,9 +254,10 @@ window.startUfo = function (mount, texts) {
     ctx.globalAlpha = 1;
     // kuu
     ctx.fillStyle = '#f3e6b0';
-    ctx.beginPath(); ctx.arc(LW - 22, 20, 6, 0, 6.29); ctx.fill();
+    var mx = Math.round(LW * 0.66);     // kuu (paremal on HUD)
+    ctx.beginPath(); ctx.arc(mx, 20, 6, 0, 6.29); ctx.fill();
     ctx.fillStyle = '#0C0D11';
-    ctx.beginPath(); ctx.arc(LW - 19.5, 18.5, 5.4, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(mx + 2.5, 18.5, 5.4, 0, 6.29); ctx.fill();
 
     if (win) drawMothership(win.shipY);
 
@@ -228,12 +268,13 @@ window.startUfo = function (mount, texts) {
     for (var gx = -groundX; gx < LW; gx += 8) ctx.fillRect(Math.round(gx), GROUND + 4, 2, 1);
 
     // kiir
-    if (now < beamUntil && mode !== 'win') drawBeam(ufo.x + UFO_W / 2, ufo.y + UFO_H, Math.min(BEAM_LEN, GROUND - ufo.y - UFO_H), now);
-    if (win && win.t >= 90 && win.t < 150) drawBeam(ufo.x + UFO_W / 2, win.shipY + 10, ufo.y - win.shipY, now);
+    if (now < beamUntil && mode !== 'win') drawBeam(ufo.x + uW() / 2, ufo.y + uH(), Math.min(BEAM_LEN, GROUND - ufo.y - uH()), now);
+    if (win && win.t >= 90 && win.t < 150) drawBeam(ufo.x + uW() / 2, win.shipY + 10, ufo.y - win.shipY, now);
 
-    // objektid
+    // objektid (MIB-mehed jooksevad: 4 jalakaadrit)
+    var runF = ((frame / 6) | 0) % 4;
     for (var j = 0; j < obs.length; j++) {
-      var o = obs[j], img = o.kind === 'man' ? MAN : COW;
+      var o = obs[j], img = o.kind === 'man' ? MAN_RUN[o.rise >= 0 ? 0 : runF] : COW;
       var y = GROUND - o.h;
       if (o.rise >= 0) {
         var k = o.rise / RISE_MS;
@@ -249,10 +290,11 @@ window.startUfo = function (mount, texts) {
     var blink = mode === 'play' && now < state.invulnUntil && ((now / 90) | 0) % 2;
     if (!blink && !(win && win.t >= 220)) {
       var bob = mode === 'win' ? 0 : Math.round(Math.sin(now / 260));
-      ctx.drawImage(((now / 220) | 0) % 2 ? UFO_A : UFO_B, Math.round(ufo.x), Math.round(ufo.y) + bob);
+      ctx.drawImage(((now / 220) | 0) % 2 ? UFO_A : UFO_B, Math.round(ufo.x), Math.round(ufo.y) + bob, uW(), uH());
     }
 
     drawHud();
+    if (banner) center(banner.s, 30, 9, '#ffe9a0');
     drawMessage(now);
   }
 
@@ -294,11 +336,22 @@ window.startUfo = function (mount, texts) {
     ctx.shadowBlur = 0;
   }
 
+  function pad(n) { n = String(Math.floor(n)); while (n.length < 5) n = '0' + n; return n; }
+
   function drawHud() {
     neon('COWS IN MOTHER SHIP: ' + state.cows, 4, 3, '#ff6ec7');
     neon('MEN IN BLACK IN MOTHER SHIP: ' + state.men, 4, 9, '#5ef2ff');
+    // paremal üleval: HI ja skoor, all elud ja tase
+    ctx.font = '5px "IBM Plex Mono", ui-monospace, monospace';
+    ctx.textBaseline = 'top'; ctx.textAlign = 'right'; ctx.fillStyle = '#ECE7DD';
+    ctx.fillText(mode === 'demo' ? (hi ? 'HI ' + pad(hi) : '') : (hi ? 'HI ' + pad(hi) + '  ' : '') + pad(state.score), LW - 4, 3);
     if (mode !== 'demo') {
-      for (var i = 0; i < state.lives; i++) heart(LW - 10 - i * 8, 4);
+      ctx.fillStyle = '#9C9789';
+      ctx.fillText('LEVEL ' + state.level + '/' + U.LEVELS, LW - 4, 16);
+    }
+    ctx.textAlign = 'left';
+    if (mode !== 'demo') {
+      for (var i = 0; i < state.lives; i++) heart(LW - 10 - i * 8, 9);
     }
   }
   function heart(x, y) {
@@ -403,13 +456,21 @@ window.startUfo = function (mount, texts) {
   if (TEST) {
     window.__ufoDebug = {
       mode: function () { return mode; },
-      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now(), keyUp: keyUp, keyDown: keyDown }; },
+      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now(), keyUp: keyUp, keyDown: keyDown, ufoW: uW(), ufoH: uH() }; },
       state: function () { var o = {}; for (var k in state) o[k] = state[k]; return o; },
       latch: function () { keyUp = true; },   // demo-autopiloodi olek: ↑ „all“
+      setTotal: function (n) { state.total = n; state.level = U.levelOf(n); },
+      hi: function () { return hi; },
+      kill: function () {
+        var now = performance.now();
+        state.lives = 1; state.invulnUntil = 0;
+        state = U.hit(state, now);
+        if (state.over) gameOver(now);
+      },
       spawnBelow: function (kind) {
         var o = makeObj(kind, 0);
-        ufo.y = GROUND - o.h - 30 - UFO_H; ufo.vy = 0;
-        o.x = ufo.x + UFO_W / 2 - o.w / 2;
+        ufo.y = GROUND - o.h - 30 - uH(); ufo.vy = 0;
+        o.x = ufo.x + uW() / 2 - o.w / 2;
         obs.push(o);
       }
     };

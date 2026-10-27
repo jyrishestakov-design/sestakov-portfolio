@@ -287,3 +287,69 @@ export async function games({ browser, openPage, t, eq, ok, VIEWS }) {
     await p.close();
   });
 }
+
+// ---- UFO tasemed, punktid, rekord
+export async function ufoLevels({ browser, openPage, t, eq, ok, VIEWS }) {
+  const dark = VIEWS[0];
+  const D = (p, f, a) => p.evaluate(f, a);
+
+  await t('UFO: tase 2 pärast 20. objekti, ufo kasvab', async () => {
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init: UFO_INIT });
+    await p.waitForFunction(() => window.__ufoDebug);
+    await p.keyboard.press('Space');
+    const base = await D(p, () => __ufoDebug.info().ufoW);
+    await D(p, () => __ufoDebug.setTotal(19));
+    await D(p, () => __ufoDebug.spawnBelow('cow'));
+    await p.keyboard.press('KeyX');
+    await p.waitForTimeout(700);
+    const s = await D(p, () => __ufoDebug.state());
+    eq(s.level, 2, 'tase');
+    ok(s.score > 0, 'punktid');
+    const w = await D(p, () => __ufoDebug.info().ufoW);
+    ok(Math.abs(w - base * 1.15) < 0.5, 'ufo laius ' + w + ' ≈ ' + base + '×1.15');
+    eq(p.errors, [], 'konsooli vead');
+    await p.close();
+  });
+
+  await t('UFO: 5. tasemel suur ufo ei vaju maast läbi (Review Focus 3)', async () => {
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init: UFO_INIT });
+    await p.waitForFunction(() => window.__ufoDebug);
+    await p.keyboard.press('Space');
+    await D(p, () => __ufoDebug.setTotal(80));
+    await p.waitForTimeout(3000);
+    const i = await D(p, () => __ufoDebug.info());
+    ok(i.ufo.y + i.ufoH <= 94.01, 'ufo alaserv ' + (i.ufo.y + i.ufoH));
+    await p.close();
+  });
+
+  await t('UFO: rekord salvestub ja püsib pärast uuesti laadimist', async () => {
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init: UFO_INIT });
+    await p.waitForFunction(() => window.__ufoDebug);
+    await p.keyboard.press('Space');
+    await D(p, () => __ufoDebug.spawnBelow('cow'));
+    await p.keyboard.press('KeyX');
+    await p.waitForTimeout(700);
+    await D(p, () => __ufoDebug.kill());
+    eq(await D(p, () => __ufoDebug.mode()), 'over', 'mäng läbi');
+    eq(await D(p, () => localStorage.getItem('ufoHi')), '10', 'salvestatud');
+    await p.reload();
+    await p.waitForFunction(() => window.__ufoDebug);
+    eq(await D(p, () => __ufoDebug.hi()), 10, 'loetud');
+    await p.close();
+  });
+
+  await t('UFO: blokeeritud localStorage ei riku mängu (Review Focus 4)', async () => {
+    const init = () => {
+      window.__UFO_TEST__ = true;
+      Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } });
+    };
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init });
+    await p.waitForFunction(() => window.__ufoDebug);
+    eq(await D(p, () => __ufoDebug.hi()), 0, 'rekord 0');
+    await p.keyboard.press('Space');
+    await D(p, () => __ufoDebug.kill());
+    eq(await D(p, () => __ufoDebug.mode()), 'over', 'mäng läbi');
+    eq(p.errors, [], 'konsooli vead');
+    await p.close();
+  });
+}
