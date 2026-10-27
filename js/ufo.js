@@ -101,6 +101,7 @@ window.startUfo = function (mount, texts) {
     ufo = { x: Math.round(LW * UFO_X), y: 40, vy: 0 };
     obs = []; speed = SPEED_START; nextGap = 60; lastBeamAt = -1e9; beamUntil = 0; groundX = 0;
     win = null;
+    keyUp = keyDown = keyFaster = keySlower = false;   // demo-autopiloodi klahvid ei tohi mängu jääda
   }
   reset();
 
@@ -402,8 +403,9 @@ window.startUfo = function (mount, texts) {
   if (TEST) {
     window.__ufoDebug = {
       mode: function () { return mode; },
-      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now() }; },
+      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now(), keyUp: keyUp, keyDown: keyDown }; },
       state: function () { var o = {}; for (var k in state) o[k] = state[k]; return o; },
+      latch: function () { keyUp = true; },   // demo-autopiloodi olek: ↑ „all“
       spawnBelow: function (kind) {
         var o = makeObj(kind, 0);
         ufo.y = GROUND - o.h - 30 - UFO_H; ufo.vy = 0;
@@ -413,5 +415,8 @@ window.startUfo = function (mount, texts) {
     };
   }
 
-  return { setTexts: function (t) { texts = t || {}; } };
+  return {
+    setTexts: function (t) { texts = t || {}; },
+    toDemo: function () { reset(); mode = 'demo'; }
+  };
 };

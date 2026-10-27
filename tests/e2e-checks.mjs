@@ -242,4 +242,48 @@ export async function games({ browser, openPage, t, eq, ok, VIEWS }) {
     eq(await p.evaluate(() => document.documentElement.scrollWidth), 390, 'laiendatud');
     await p.close();
   });
+
+  // ---- Lõppülevaatuse leiud
+  await t('UFO: pärast tühikut vajub ufo ise (demo klahvid ei jää külge)', async () => {
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init: UFO_INIT });
+    await p.waitForFunction(() => window.__ufoDebug);
+    await p.evaluate(() => __ufoDebug.latch());                    // demo-autopiloot hoiab ↑ all
+    await p.keyboard.press('Space');
+    const y0 = await p.evaluate(() => __ufoDebug.info().ufo.y);
+    await p.waitForTimeout(300);
+    const dy = (await p.evaluate(() => __ufoDebug.info().ufo.y)) - y0;
+    ok(dy > 0 && dy < 15, 'ufo vajub aeglaselt, dy=' + dy.toFixed(1));
+    await p.close();
+  });
+
+  await t('„← Mängud“ mängu ajal: mäng läheb tagasi demoks; nooled kerivad lehte', async () => {
+    const p = await openPage(browser, dark, { fixture: 'games-both.json', init: UFO_INIT });
+    await p.waitForSelector('.ufo-runner canvas');
+    await p.click('.gm-half[data-game="ufo"] .gm-pick');
+    await p.keyboard.press('Space');
+    eq(await p.evaluate(() => __ufoDebug.mode()), 'play', 'mängib');
+    await p.click('.gm-back');
+    eq(await p.evaluate(() => __ufoDebug.mode()), 'demo', 'tagasi demoks');
+    const prevented = await p.evaluate(() => {
+      const e = new KeyboardEvent('keydown', { code: 'ArrowDown', key: 'ArrowDown', bubbles: true, cancelable: true });
+      document.body.dispatchEvent(e);
+      return e.defaultPrevented;
+    });
+    eq(prevented, false, 'ArrowDown valikuvaates ei blokeeri kerimist');
+    await p.close();
+  });
+
+  await t('Tab + Enter / tühik valikunupul avab just selle mängu', async () => {
+    const p = await openPage(browser, dark, { fixture: 'games-both.json', init: UFO_INIT });
+    await p.waitForSelector('.ufo-runner canvas');
+    await p.focus('.gm-half[data-game="ufo"] .gm-pick');
+    await p.keyboard.press('Enter');
+    eq(await view(p), 'ufo', 'Enter avab UFO');
+    await p.click('.gm-back');
+    await p.focus('.gm-half[data-game="ufo"] .gm-pick');
+    await p.keyboard.press('Space');
+    eq(await view(p), 'ufo', 'tühik avab UFO');
+    eq(await p.evaluate(() => __ufoDebug.mode()), 'demo', 'tühik ainult avab, ei alusta');
+    await p.close();
+  });
 }

@@ -60,6 +60,11 @@ window.startGames = function (strip, opts) {
     back.hidden = view === 'pick';
   }
   function open(g) { focus = g; show(g); }
+  // Tagasi valikuvaatesse: valikuvaade on kahe demo jaoks, pooleli mäng läheb demoks
+  function backToPick() {
+    if (strip.dataset.view === 'ufo' && ufoApi && ufoApi.toDemo) ufoApi.toDemo();
+    show('pick');
+  }
 
   function onScreen() {
     var r = strip.getBoundingClientRect();
@@ -73,22 +78,27 @@ window.startGames = function (strip, opts) {
     if (e.metaKey || e.ctrlKey || e.altKey || !onScreen()) return;
     var view = strip.dataset.view;
     if (view !== 'pick') {
-      if (e.code === 'Escape') { e.preventDefault(); show('pick'); }
+      if (e.code === 'Escape') { e.preventDefault(); backToPick(); }
       return;
     }
+    var pickBtn = t && t.closest && t.closest('.gm-pick');
     if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
       e.preventDefault(); e.stopImmediatePropagation();
       focus = e.code === 'ArrowLeft' ? 'viking' : 'ufo';
       show('pick');
-    } else if (e.code === 'Enter') {
+    } else if (e.code === 'Enter' || (pickBtn && e.code === 'Space')) {
+      // fookuses valikunupp (Tab) avab just selle mängu; muidu nooltega valitud pool
       e.preventDefault(); e.stopImmediatePropagation();
-      open(focus);
+      open(pickBtn ? pickBtn.parentNode.dataset.game : focus);
     } else if (e.code === 'Space' || e.code === 'KeyX') {
       e.preventDefault(); e.stopImmediatePropagation();
+    } else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+      // mängud ei saa nooli, aga leht kerib nagu ikka
+      e.stopImmediatePropagation();
     }
   }, true);
 
-  back.addEventListener('click', function () { show('pick'); });
+  back.addEventListener('click', backToPick);
 
   setTexts(texts);
   show('pick');
