@@ -353,3 +353,62 @@ export async function ufoLevels({ browser, openPage, t, eq, ok, VIEWS }) {
     await p.close();
   });
 }
+
+// ---- UFO mürsud, Z-laser, superjõud
+export async function ufoMissiles({ browser, openPage, t, eq, ok, VIEWS }) {
+  const dark = VIEWS[0];
+  const D = (p, f) => p.evaluate(f);
+  const open = async () => {
+    const p = await openPage(browser, dark, { fixture: 'ufo-only.json', init: UFO_INIT });
+    await p.waitForFunction(() => window.__ufoDebug);
+    await p.keyboard.press('Space');
+    return p;
+  };
+
+  await t('Z-laser laseb mürsu alla (+5 punkti)', async () => {
+    const p = await open();
+    await D(p, () => __ufoDebug.spawnMissile(4));
+    await p.keyboard.press('KeyZ');
+    await p.waitForTimeout(300);
+    eq(await D(p, () => __ufoDebug.info().missiles.length), 0, 'mürske');
+    eq(await D(p, () => __ufoDebug.state().score), 5, 'punktid');
+    eq(await D(p, () => __ufoDebug.state().lives), 3, 'elud');
+    eq(p.errors, [], 'konsooli vead');
+    await p.close();
+  });
+
+  await t('mürsk ufosse: elu maha; haavamatuse ajal ainult üks (Review Focus 5)', async () => {
+    const p = await open();
+    await D(p, () => __ufoDebug.spawnMissile(4));
+    await p.waitForTimeout(600);
+    eq(await D(p, () => __ufoDebug.state().lives), 2, 'elud pärast 1. mürsku');
+    await D(p, () => { __ufoDebug.spawnMissile(4); __ufoDebug.spawnMissile(2); });
+    await p.waitForTimeout(600);
+    eq(await D(p, () => __ufoDebug.state().lives), 2, 'haavamatuse ajal elu ei kao');
+    eq(await D(p, () => __ufoDebug.info().missiles.length), 0, 'mürsud kadusid');
+    await p.close();
+  });
+
+  await t('superjõud: pooliku laenguga ei vallandu, täis laenguga 1 s Z → kõik emalaeva (Review Focus 1)', async () => {
+    const p = await open();
+    await D(p, () => { __ufoDebug.spawnBelow('cow'); __ufoDebug.setCharge(0.5); });
+    await p.keyboard.down('KeyZ'); await p.waitForTimeout(1200); await p.keyboard.up('KeyZ');
+    eq(await D(p, () => __ufoDebug.state().total), 0, 'pooliku laenguga ei vallandu');
+    await D(p, () => { __ufoDebug.spawnBelow('man'); __ufoDebug.spawnBelow('cow'); __ufoDebug.spawnMissile(30); __ufoDebug.setCharge(1); });
+    await p.keyboard.down('KeyZ'); await p.waitForTimeout(1150); await p.keyboard.up('KeyZ');
+    const s = await D(p, () => __ufoDebug.state());
+    ok(s.total >= 2, 'objektid emalaevas: ' + s.total);
+    ok(s.charge < 0.05, 'laeng tühi: ' + s.charge);
+    eq(await D(p, () => __ufoDebug.info().missiles.length), 0, 'mürsud hävinud');
+    await p.close();
+  });
+
+  await t('superjõud GAME OVER ajal ei tee midagi (Review Focus 2)', async () => {
+    const p = await open();
+    await D(p, () => __ufoDebug.kill());
+    await D(p, () => { __ufoDebug.spawnBelow('cow'); __ufoDebug.setCharge(1); });
+    await p.keyboard.down('KeyZ'); await p.waitForTimeout(1150); await p.keyboard.up('KeyZ');
+    eq(await D(p, () => __ufoDebug.state().total), 0, 'midagi ei teleporteeritud');
+    await p.close();
+  });
+}

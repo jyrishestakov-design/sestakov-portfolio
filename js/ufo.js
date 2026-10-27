@@ -104,6 +104,7 @@ window.startUfo = function (mount, texts) {
   // ---------- olek ----------
   var mode = 'demo';                // 'demo' | 'play' | 'over' | 'win'
   var state, ufo, obs, speed, nextGap, lastBeamAt, beamUntil, groundX, overAt, win, banner, frame;
+  var missiles, nextMissile, lastZapAt, zapUntil, zHeld, zHeldSince, chargeFullAt, flash, superT;
   var keyUp = false, keyDown = false, keyFaster = false, keySlower = false;
   var hi = 0;
   try { hi = +localStorage.getItem('ufoHi') || 0; } catch (e) {}
@@ -113,7 +114,30 @@ window.startUfo = function (mount, texts) {
     ufo = { x: Math.round(LW * UFO_X), y: 40, vy: 0 };
     obs = []; speed = SPEED_START; nextGap = 60; lastBeamAt = -1e9; beamUntil = 0; groundX = 0;
     win = null; banner = null; frame = 0;
+    missiles = []; nextMissile = 6000; lastZapAt = -1e9; zapUntil = 0;
+    zHeld = false; zHeldSince = 0; chargeFullAt = 0; flash = 0; superT = 0;
     keyUp = keyDown = keyFaster = keySlower = false;   // demo-autopiloodi klahvid ei tohi mängu jääda
+  }
+
+  // ---------- Z-laser ja superjõud ----------
+  function zap(now) {
+    if (now - lastZapAt < U.ZAP_MS + U.ZAP_COOLDOWN_MS) return;
+    lastZapAt = now; zapUntil = now + U.ZAP_MS;
+  }
+  function pressZ(now) { zHeld = true; zHeldSince = now; zap(now); }
+  function setCharge(s, now) {               // jätab meelde, millal laeng täis sai
+    if (state.charge < 1 && s.charge >= 1) chargeFullAt = now;
+    state = s;
+  }
+  function doSuper(now) {
+    var kinds = [];
+    for (var i = 0; i < obs.length; i++) {
+      var o = obs[i];
+      if (o.rise < 0 && o.x < LW && o.x + o.w > 0) { o.rise = 0; kinds.push(o.kind); }
+    }
+    state = U.superBlast(state, kinds);
+    missiles = []; flash = 1; superT = 70; chargeFullAt = 0;
+    afterScore();
   }
   reset();
 
@@ -148,6 +172,8 @@ window.startUfo = function (mount, texts) {
   function update(dt, now) {
     frame += dt;
     if (banner) { banner.t += dt; if (banner.t > 120) banner = null; }
+    if (flash > 0) flash = Math.max(0, flash - 0.03 * dt);
+    if (superT > 0) superT -= dt;
     if (mode === 'win') { updateWin(dt); return; }
     ufo.x = Math.round(LW * UFO_X);
 
@@ -197,6 +223,38 @@ window.startUfo = function (mount, texts) {
         if (state.over) gameOver(now);
       }
     }
+    if (mode === 'play') updatePlayExtras(dt, now, move);
+  }
+
+  // Mürsud, Z-laser, laeng ja superjõud (ainult mängus)
+  function updatePlayExtras(dt, now, move) {
+    var dtMs = dt * 16.667;
+    setCharge(U.chargeStep(state, dtMs), now);
+    if (!TEST) {
+      nextMissile -= dtMs;
+      if (nextMissile <= 0) {
+        missiles.push({ x: LW + 4, y: Y_MIN + Math.random() * (GROUND - 24 - Y_MIN), w: MISSILE_W, h: MISSILE_H });
+        nextMissile = 6000 * Math.pow(0.85, lvlF()) * (0.5 + Math.random());
+      }
+    }
+    var ur = { x: ufo.x, y: ufo.y, w: uW(), h: uH() }, ub = ufoBox(), zapOn = now < zapUntil;
+    for (var i = missiles.length - 1; i >= 0; i--) {
+      var m = missiles[i];
+      m.x -= move + 1.6 * dt;
+      if (m.x + m.w < -5) { missiles.splice(i, 1); continue; }
+      if (zapOn && U.zapHits(ur, m)) {
+        missiles.splice(i, 1);
+        setCharge(U.shootMissile(state), now);
+        continue;
+      }
+      if (U.collides(ub, m)) {
+        missiles.splice(i, 1);                               // mürsk kaob alati
+        state = U.hit(state, now);
+        if (state.over) { gameOver(now); return; }
+      }
+    }
+    // Superjõud: täis laeng ja Z all vähemalt SUPER_HOLD_MS (loeb alates hetkest, kui mõlemad kehtivad)
+    if (zHeld && state.charge >= 1 && now - Math.max(zHeldSince, chargeFullAt) >= U.SUPER_HOLD_MS) doSuper(now);
   }
 
   // Objekt emalaevas: punktid, tase, võit
@@ -293,8 +351,30 @@ window.startUfo = function (mount, texts) {
       ctx.drawImage(((now / 220) | 0) % 2 ? UFO_A : UFO_B, Math.round(ufo.x), Math.round(ufo.y) + bob, uW(), uH());
     }
 
+    // mürsud: punane-oranž kere, valge nina, suitsujälg
+    for (var q = 0; q < missiles.length; q++) {
+      var ms = missiles[q], mx0 = Math.round(ms.x), my0 = Math.round(ms.y);
+      ctx.fillStyle = 'rgba(180,180,190,.35)';
+      for (var tr = 1; tr <= 3; tr++) ctx.fillRect(mx0 + ms.w + tr * 3, my0 + 1 + ((frame / 4 + tr) | 0) % 2 - 0.5, 2, 1);
+      ctx.fillStyle = '#e4572e'; ctx.fillRect(mx0 + 1, my0, ms.w - 1, ms.h);
+      ctx.fillStyle = '#ffd166'; ctx.fillRect(mx0 + ms.w - 1, my0, 1, ms.h);
+      ctx.fillStyle = '#f4f4f4'; ctx.fillRect(mx0, my0 + 1, 1, 1);
+    }
+
+    // Z-laser
+    if (now < zapUntil && mode === 'play') {
+      var zy = Math.round(ufo.y + uH() * 0.55), zx = Math.round(ufo.x + uW());
+      ctx.shadowColor = '#7dff7a'; ctx.shadowBlur = 5;
+      ctx.fillStyle = '#b7ffb4'; ctx.fillRect(zx, zy, LW - zx, 1);
+      ctx.shadowBlur = 0;
+    }
+
+    // superjõu sähvatus
+    if (flash > 0) { ctx.fillStyle = 'rgba(125,255,122,' + (flash * 0.45) + ')'; ctx.fillRect(0, 0, LW, LOGICAL_H); }
+
     drawHud();
     if (banner) center(banner.s, 30, 9, '#ffe9a0');
+    if (superT > 0) center('SUPER!', 44, 10, '#7dff7a');
     drawMessage(now);
   }
 
@@ -352,6 +432,11 @@ window.startUfo = function (mount, texts) {
     ctx.textAlign = 'left';
     if (mode !== 'demo') {
       for (var i = 0; i < state.lives; i++) heart(LW - 10 - i * 8, 9);
+      // superjõu laadimisriba neoonsiltide all (täis = vilgub)
+      var full = state.charge >= 1;
+      ctx.fillStyle = '#1f2b1d'; ctx.fillRect(4, 16, 40, 2);
+      ctx.fillStyle = full && ((frame / 8) | 0) % 2 ? '#ffffff' : '#7dff7a';
+      ctx.fillRect(4, 16, Math.round(40 * state.charge), 2);
     }
   }
   function heart(x, y) {
@@ -409,12 +494,13 @@ window.startUfo = function (mount, texts) {
     if (mode !== 'play') { pressStart(); return; }
     var r = mount.getBoundingClientRect();
     var fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
-    if (fx > 0.75) pressBeam();
+    if (fx > 0.75 && fy < 0.5) pressZ(performance.now());      // paremal üleval: Z (hoia = superjõud)
+    else if (fx > 0.75) pressBeam();                           // paremal all: kiir alla
     else if (fy < 0.5) keyUp = true;
     else keyDown = true;
     try { mount.setPointerCapture(e.pointerId); } catch (_) {}
   });
-  var release = function () { keyUp = keyDown = false; };
+  var release = function () { keyUp = keyDown = false; zHeld = false; };
   mount.addEventListener('pointerup', release);
   mount.addEventListener('pointercancel', release);
 
@@ -425,6 +511,11 @@ window.startUfo = function (mount, texts) {
     var playing = mode === 'play';
     if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) pressStart(); }
     else if (e.code === 'KeyX') { e.preventDefault(); if (!e.repeat) pressBeam(); }
+    else if (e.code === 'KeyZ') {
+      e.preventDefault();
+      if (e.repeat) return;
+      if (playing) pressZ(performance.now()); else pressStart();
+    }
     else if (!playing) return;                                   // demo ajal kerivad nooled lehte
     else if (e.code === 'ArrowUp') { e.preventDefault(); keyUp = true; }
     else if (e.code === 'ArrowDown') { e.preventDefault(); keyDown = true; }
@@ -436,8 +527,9 @@ window.startUfo = function (mount, texts) {
     if (e.code === 'ArrowDown') keyDown = false;
     if (e.code === 'ArrowRight') keyFaster = false;
     if (e.code === 'ArrowLeft') keySlower = false;
+    if (e.code === 'KeyZ') zHeld = false;
   });
-  window.addEventListener('blur', function () { keyUp = keyDown = keyFaster = keySlower = false; });
+  window.addEventListener('blur', function () { keyUp = keyDown = keyFaster = keySlower = zHeld = false; });
 
   // ---------- tsükkel (peatub, kui pole nähtav) ----------
   var visible = true, last = performance.now();
@@ -456,11 +548,13 @@ window.startUfo = function (mount, texts) {
   if (TEST) {
     window.__ufoDebug = {
       mode: function () { return mode; },
-      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now(), keyUp: keyUp, keyDown: keyDown, ufoW: uW(), ufoH: uH() }; },
+      info: function () { return { ufo: ufo, obs: obs, beamUntil: beamUntil, lastBeamAt: lastBeamAt, LW: LW, visible: visible, now: performance.now(), keyUp: keyUp, keyDown: keyDown, ufoW: uW(), ufoH: uH(), missiles: missiles }; },
       state: function () { var o = {}; for (var k in state) o[k] = state[k]; return o; },
       latch: function () { keyUp = true; },   // demo-autopiloodi olek: ↑ „all“
       setTotal: function (n) { state.total = n; state.level = U.levelOf(n); },
       hi: function () { return hi; },
+      spawnMissile: function (dy) { missiles.push({ x: ufo.x + uW() + 12, y: ufo.y + dy, w: MISSILE_W, h: MISSILE_H }); },
+      setCharge: function (v) { setCharge(Object.assign({}, state, { charge: v }), performance.now()); },
       kill: function () {
         var now = performance.now();
         state.lives = 1; state.invulnUntil = 0;
