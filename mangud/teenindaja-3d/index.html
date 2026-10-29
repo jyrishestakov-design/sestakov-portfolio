@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kas siin keegi töötab? 3D</title>
+<meta name="description" content="Pacmani-laadne ehituspoe mäng: teenindajad jooksevad eest. Jüri-Illimar Reinberg-Šestakov, shesta.eu">
+<style>
+body{margin:0}
+[hidden]{display:none!important}
+.backlinks{max-width:1180px;margin:0 auto 10px;display:flex;gap:16px;flex-wrap:wrap;font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;font-size:16px;font-weight:600}
+.backlinks a{color:#9a9c9f;text-decoration:none}
+.backlinks a:hover,.backlinks a:focus-visible{color:#f2c230}
+</style>
+</head>
+<body>
+<nav class="backlinks"><a href="../../">← shesta.eu</a><a href="../">Kõik mängud</a><a href="../teenindaja/">Mängi 2D-s →</a></nav>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Layout: arcade cabinet — HUD strip, 3D store floor, numbered shopping list beside (below on phones) */
+:root{
+  color-scheme: dark;
+  --bg:#17181a;
+  --panel:#222428;
+  --line:#34373d;
+  --fg:#ecebe6;
+  --muted:#9a9c9f;
+  --hazard:#f2c230;
+  --rack:#e8792b;
+  --ok:#7fcf6b;
+  --display:"Bungee", "Impact", system-ui, sans-serif;
+  --body:"Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px;box-sizing:border-box}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(20px,4vw,30px);margin:0;color:var(--hazard);letter-spacing:.02em;text-wrap:balance}
+h1 small{font-size:.55em;color:var(--rack);vertical-align:middle;margin-left:6px}
+.hud{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-variant-numeric:tabular-nums;font-weight:600;font-size:18px}
+.hud b{color:var(--hazard);font-weight:700}
+.stripe{height:8px;background:repeating-linear-gradient(-45deg,var(--hazard) 0 12px,#111 12px 24px);border-radius:2px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;align-items:start}
+@media (max-width:780px){.main{grid-template-columns:1fr}}
+.stage{position:relative;min-width:0;border-radius:6px;overflow:hidden;background:#15171a}
+canvas{display:block;width:100%;touch-action:none}
+.bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bubble{position:absolute;left:0;top:0;background:var(--fg);color:#151515;font-weight:600;font-size:15px;padding:3px 8px;border-radius:6px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,16,18,.82);padding:16px;box-sizing:border-box}
+.card{max-width:460px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.card h2{font-family:var(--display);font-weight:400;font-size:clamp(20px,4.5vw,30px);margin:0;color:var(--hazard);text-wrap:balance}
+.card p{margin:0;line-height:1.35}
+.card .small{color:var(--muted);font-size:15px}
+button{font-family:var(--display);font-size:16px;background:var(--hazard);color:#151515;border:0;border-radius:4px;padding:10px 20px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+.ghost{font-family:var(--body);font-weight:600;font-size:16px;background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:5px 12px}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+aside h3{margin:0;font-family:var(--display);font-weight:400;font-size:15px;letter-spacing:.04em;color:var(--muted)}
+ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+li{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start;line-height:1.15}
+.num{width:22px;height:22px;display:grid;place-items:center;background:var(--hazard);color:#151515;font-weight:700;border-radius:3px 3px 3px 9px;font-size:14px}
+.st{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+li.cart .st{color:var(--hazard)} li.done .st{color:var(--ok)}
+li.done .name{text-decoration:line-through;color:var(--muted)}
+li.done .num{background:var(--ok)}
+.legend{font-size:15px;color:var(--muted);line-height:1.35;border-top:1px solid var(--line);padding-top:10px}
+.legend b{color:var(--fg)}
+.pad{display:none;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,52px);gap:6px;justify-content:center}
+.pad button{padding:0;font-size:20px;background:var(--panel);color:var(--fg);border:1px solid var(--line)}
+.pad .u{grid-column:2;grid-row:1}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+@media (pointer:coarse){.pad{display:grid}}
+.err{padding:24px;color:var(--fg)}
+[hidden]{display:none!important}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Kas siin keegi töötab?<small>3D</small></h1>
+    <div class="hud">
+      <span id="hLevel">Tase 1 · Kuur</span>
+      <span>Kell <b id="hClock">19:00</b> · pood suleb 20:00</span>
+      <span id="hFreeze"></span>
+      <button class="ghost" id="camBtn" type="button">Kaamera: jälgiv</button>
+    </div>
+  </header>
+  <div class="stripe"></div>
+  <div class="main">
+    <div class="stage" id="stage">
+      <canvas id="c" aria-label="Ehituspoe labürint 3D-s"></canvas>
+      <div class="bubbles" id="bub"></div>
+      <div class="overlay" id="ov"><div class="card" id="ovCard"></div></div>
+    </div>
+    <aside>
+      <h3 id="listTitle">OSTUNIMEKIRI</h3>
+      <ol id="list"></ol>
+      <div class="legend">
+        Korja nummerdatud hinnasildid kärusse. Teenindajad jooksevad eest. Võta <b>kuldne kell</b> („Juhataja tuleb!“) ja nad tarduvad: puuduta neid ning tellimus on vormistatud. Hoia eemale <b>hallijuukselistest klientidest</b>.<br>Nooled / WASD, <b>C</b> vahetab kaamerat, <b>P</b> paus. Telefonis libista.
+      </div>
+      <div class="pad" aria-label="Juhtnupud">
+        <button class="u" data-d="0,-1" aria-label="Üles">▲</button>
+        <button class="l" data-d="-1,0" aria-label="Vasakule">◀</button>
+        <button class="d" data-d="0,1" aria-label="Alla">▼</button>
+        <button class="r" data-d="1,0" aria-label="Paremale">▶</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+if(!window.THREE){document.getElementById("stage").innerHTML='<p class="err">3D-mootor ei laadinud. Värskenda lehte.</p>';throw new Error("no three")}
+const MAP=[
+"#####################",
+"#P........#........P#",
+"#.###.###.#.###.###.#",
+"#...................#",
+"#.###.#.#####.#.###.#",
+"#.....#...#...#.....#",
+"###.#.###.#.###.#.###",
+"#...#...........#...#",
+"#.#.#.###.#.###.#.#.#",
+"#.#...#...#...#...#.#",
+"#.###.#.#####.#.###.#",
+"#.........S.........#",
+"#.###.###.#.###.###.#",
+"#P..#...........#..P#",
+"#####################"];
+const W=21,H=15;
+const LEVELS=[
+ {name:"Kuur",time:120,staff:3,cust:1,items:["Saematerjal 45×95×3000","OSB-3 plaat 12 mm","Puidukruvid 5×80, 500 tk","Rullkatusepapp 10 m²","Uksehinged, 2 tk"]},
+ {name:"Terrass",time:140,staff:4,cust:2,items:["Terrassilaud 28×120×4200","Vundamendiplokk 200×200","Terrassikruvid A4 4,2×55","Puiduõli 2,7 l","Kruvivundament 76×800","Geotekstiil 2×25 m"]},
+ {name:"Saun",time:160,staff:4,cust:3,items:["Voodrilaud haab 15×90","Alumiiniumfoolium 10 m","Kerisekivid 20 kg","Kivivill 50 mm","Klaasist saunauks 7×19","Leiliruumi valgusti","Liistud 15×42"]}
+];
+const STAFF=[
+ {name:"Toomas",vest:0xc9e83a,lines:["Kohe tulen!","See pole minu osakond","Küsige kassast"]},
+ {name:"Marika",vest:0x4fd1c5,lines:["Lähen lattu vaatan","Üks hetk!","Mul on paus"]},
+ {name:"Ants",vest:0xf28fb4,lines:["Telefon heliseb","Kolleeg tuleb kohe","Seda meil pole"]},
+ {name:"Kaido",vest:0x9db4ff,lines:["Vaatan arvutist","Ma olen siin praktikant","Kohvipaus!"]}
+];
+const CUST_LINES=["Vabandage, kas te töötate siin?","Kas teil on 6 mm tüübleid?","Kus siin WC on?","Ma olin enne!"];
+const ITEM_COLORS=[0xc9a26b,0xb7a07a,0x7d6a55,0x3b3b3b,0xd8d2c4,0x8a5a3a,0x6f8a9a];
+const wall=(x,y)=>x<0||y<0||x>=W||y>=H||MAP[y][x]==="#";
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const CX=(W-1)/2,CZ=(H-1)/2;
+
+// ---------- three setup ----------
+const cv=document.getElementById("c"),stage=document.getElementById("stage"),bubLayer=document.getElementById("bub");
+const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x15171a);scene.fog=new THREE.Fog(0x15171a,20,42);
+const camera=new THREE.PerspectiveCamera(48,1.6,.1,120);
+scene.add(new THREE.HemisphereLight(0xe8eef5,0x2a2622,.72));
+const sun=new THREE.DirectionalLight(0xfff2dc,.85);sun.position.set(CX-6,16,CZ+7);sun.target.position.set(CX,0,CZ);
+sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-15,right:15,top:13,bottom:-13,near:1,far:40});sun.shadow.bias=-.0006;
+scene.add(sun,sun.target);
+const M=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.78},o));
+function canvasTex(w,h,draw){const c=document.createElement("canvas");c.width=w;c.height=h;draw(c.getContext("2d"),w,h);const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+
+// floor
+const floorTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle="#4b4e53";g.fillRect(0,0,w,h);for(let i=0;i<260;i++){g.fillStyle=`rgba(${Math.random()<.5?0:255},${Math.random()<.5?0:255},255,${Math.random()*.04})`;g.fillRect(Math.random()*w,Math.random()*h,2,2)}g.strokeStyle="#3a3d42";g.lineWidth=3;g.strokeRect(0,0,w,h)});
+floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;floorTex.repeat.set(W+2,H+2);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(W+2,H+2),M(0xffffff,{map:floorTex,roughness:.55}));
+floor.rotation.x=-Math.PI/2;floor.position.set(CX,0,CZ);floor.receiveShadow=true;scene.add(floor);
+
+// racks (instanced)
+let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+const walls=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(wall(x,y))walls.push([x,y]);
+const dummy=new THREE.Object3D();
+const core=new THREE.InstancedMesh(new THREE.BoxGeometry(.94,1.3,.94),M(0x1d3550),walls.length);
+const beams=new THREE.InstancedMesh(new THREE.BoxGeometry(1,.07,1),M(0xe8792b,{roughness:.6}),walls.length*2);
+const prods=[];const PCOL=[0xb98a55,0x8c6b45,0xc9b28a,0x6f7d88,0xa6513a,0x4f7a5a,0xd8d2c4,0xe0c25a];
+walls.forEach(([x,y],i)=>{
+ dummy.position.set(x,.65,y);dummy.scale.set(1,1,1);dummy.updateMatrix();core.setMatrixAt(i,dummy.matrix);
+ [.45,.95].forEach((by,k)=>{dummy.position.set(x,by,y);dummy.updateMatrix();beams.setMatrixAt(i*2+k,dummy.matrix)});
+ if(rnd()<.55){const n=1+Math.floor(rnd()*2);for(let q=0;q<n;q++){const w=.3+rnd()*.25,h=.18+rnd()*.2;prods.push({x:x+(rnd()-.5)*.4,y:1.3+h/2,z:y+(rnd()-.5)*.4,sx:w,sy:h,sz:.3+rnd()*.2,c:PCOL[Math.floor(rnd()*3)]})}}
+ for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){if(wall(x+a,y+b))continue;
+  for(const ly of[.02,.485,.985])for(const off of[-.24,.22]){if(rnd()<.18)continue;
+   const w=.26+rnd()*.14,h=.22+rnd()*.16,d=.24;
+   const tx=b!==0?off:0,tz=a!==0?off:0;
+   prods.push({x:x+a*.4+tx,y:ly+h/2,z:y+b*.4+tz,sx:a!==0?d:w,sy:h,sz:a!==0?w:d,c:PCOL[Math.floor(rnd()*PCOL.length)]})}}
+});
+const prodMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M(0xffffff),prods.length);
+const tmpC=new THREE.Color();
+prods.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.scale.set(p.sx,p.sy,p.sz);dummy.updateMatrix();prodMesh.setMatrixAt(i,dummy.matrix);prodMesh.setColorAt(i,tmpC.setHex(p.c))});
+for(const m of[core,beams,prodMesh]){m.castShadow=true;m.receiveShadow=true;scene.add(m)}
+
+// signs
+function signSprite(text,bg="#f2c230",fg="#151515",sx=3.2){const t=canvasTex(512,96,(g,w,h)=>{g.fillStyle=bg;g.fillRect(0,0,w,h);g.fillStyle=fg;g.font="44px Bungee, Impact, sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText(text,w/2,h/2+3)});
+ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,opacity:.92}));s.scale.set(sx,sx*96/512,1);return s}
+[["SAEMATERJAL",5,3],["KINNITUSDETAILID",15,3],["KATUSED",3,9],["AIAKESKUS",17,9],["INFOLETT",10,7]].forEach(([t,x,z])=>{const s=signSprite(t);s.position.set(x,2.5,z);scene.add(s)});
+// entrance decal
+{const t=canvasTex(128,128,(g,w,h)=>{for(let i=-8;i<16;i++){g.fillStyle=i%2?"#f2c230":"#151515";g.beginPath();g.moveTo(i*16,0);g.lineTo(i*16+16,0);g.lineTo(i*16+16-128,128);g.lineTo(i*16-128,128);g.fill()}});
+ const d=new THREE.Mesh(new THREE.PlaneGeometry(.9,.9),new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:.55}));d.rotation.x=-Math.PI/2;d.position.set(10,.006,11);scene.add(d)}
+
+// shared character geometry
+const G={leg:new THREE.BoxGeometry(.11,.36,.13),arm:new THREE.BoxGeometry(.07,.32,.08),torso:new THREE.CylinderGeometry(.19,.21,.42,14),
+ vest:new THREE.CylinderGeometry(.208,.218,.3,14),stripe:new THREE.CylinderGeometry(.214,.222,.045,14),head:new THREE.SphereGeometry(.14,18,14),
+ cap:new THREE.SphereGeometry(.15,18,8,0,Math.PI*2,0,Math.PI/2),ring:new THREE.RingGeometry(.3,.4,32),glow:new THREE.CircleGeometry(.34,28),
+ bell:new THREE.LatheGeometry([[.001,.32],[.05,.31],[.09,.26],[.11,.15],[.13,.06],[.19,0],[.2,-.025]].map(p=>new THREE.Vector2(p[0],p[1])),24),
+ clap:new THREE.SphereGeometry(.045,10,8),box:new THREE.BoxGeometry(1,1,1)};
+G.leg.translate(0,-.18,0);G.arm.translate(0,-.15,0);
+const pantsM=M(0x2b2e33),skinM=M(0xe6c3a2),stripeM=M(0xf4f4f4,{roughness:.3});
+let levelGroup=new THREE.Group();scene.add(levelGroup);
+function makePerson({body,vest,cap,hair}){
+ const g=new THREE.Group(),inner=new THREE.Group();g.add(inner);
+ const add=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;inner.add(m);return m};
+ const bm=M(body);
+ const legL=add(G.leg,pantsM,-.08,.38,0),legR=add(G.leg,pantsM,.08,.38,0);
+ add(G.torso,bm,0,.58,0);
+ if(vest){add(G.vest,M(vest),0,.61,0);add(G.stripe,stripeM,0,.6,0)}
+ const armL=add(G.arm,bm,-.25,.76,0),armR=add(G.arm,bm,.25,.76,0);
+ add(G.head,skinM,0,.95,0);
+ if(cap)add(G.cap,M(cap),0,.98,0);else if(hair)add(G.cap,M(hair),0,.985,-.012);
+ const ring=new THREE.Mesh(G.ring,new THREE.MeshBasicMaterial({color:0xf2c230,transparent:true,opacity:.9,side:THREE.DoubleSide}));
+ ring.rotation.x=-Math.PI/2;ring.position.y=.02;ring.visible=false;g.add(ring);
+ levelGroup.add(g);return{g,inner,legL,legR,armL,armR,ring,bodyMat:bm,yaw:0,ph:0};
+}
+function makeCart(){
+ const c=new THREE.Group();const geo=new THREE.BoxGeometry(.42,.24,.34);
+ const basket=new THREE.Group();basket.position.y=.42;c.add(basket);
+ basket.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0xd0d4d8})));
+ basket.add(new THREE.Mesh(geo,M(0xaab3bb,{transparent:true,opacity:.22,metalness:.4,roughness:.4})));
+ const metal=M(0xb8bec4,{metalness:.5,roughness:.35});
+ const base=new THREE.Mesh(G.box,metal);base.scale.set(.4,.02,.32);base.position.y=.14;c.add(base);
+ const handle=new THREE.Mesh(G.box,M(0xd9483b));handle.scale.set(.46,.035,.035);handle.position.set(0,.6,-.2);c.add(handle);
+ const wheelM=M(0x222222);for(const[x,z]of[[-.16,-.12],[.16,-.12],[-.16,.12],[.16,.12]]){const w=new THREE.Mesh(G.clap,wheelM);w.position.set(x,.045,z);c.add(w)}
+ c.items=new THREE.Group();c.items.position.y=.33;c.add(c.items);
+ c.traverse(o=>o.castShadow=true);c.position.z=.44;return c;
+}
+
+// ---------- game state ----------
+let L,lv=0,state="intro",player,staff=[],custs=[],items=[],powers=[],clock=0,freeze=0,dist,lastPC,bubbles=[],camMode="follow",cart;
+function ent(x,y,speed){return{cx:x,cy:y,tx:x,ty:y,p:0,dx:0,dy:0,speed,boost:0,wait:0}}
+function pos(e){return[e.cx+(e.tx-e.cx)*e.p,e.cy+(e.ty-e.cy)*e.p]}
+function tagTex(n){return canvasTex(128,96,(g,w,h)=>{g.fillStyle="#f2c230";g.beginPath();g.moveTo(8,8);g.lineTo(92,8);g.lineTo(122,48);g.lineTo(92,88);g.lineTo(8,88);g.closePath();g.fill();
+ g.fillStyle="#151515";g.beginPath();g.arc(100,48,7,0,7);g.fill();g.font="700 62px 'Barlow Condensed', Arial Narrow, sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText(n,50,52)})}
+function setup(n){
+ lv=n;L=LEVELS[n];clock=L.time;freeze=0;clearBubbles();
+ scene.remove(levelGroup);levelGroup=new THREE.Group();scene.add(levelGroup);
+ let sx=10,sy=11;
+ player=ent(sx,sy,5);player.want=[0,0];player.stun=0;
+ player.view=makePerson({body:0xd9483b,hair:0x5a3b28});cart=makeCart();player.view.g.add(cart);player.view.yaw=Math.PI;
+ const cells=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(MAP[y][x]==="."&&Math.abs(x-sx)+Math.abs(y-sy)>3)cells.push([x,y]);
+ for(let i=cells.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cells[i],cells[j]]=[cells[j],cells[i]]}
+ items=[];for(const c of cells){if(items.length>=L.items.length)break;if(items.every(i=>Math.abs(i.x-c[0])+Math.abs(i.y-c[1])>=4)){
+  const idx=items.length;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tagTex(idx+1)}));sp.scale.set(.62,.46,1);sp.position.set(c[0],.6,c[1]);
+  const gl=new THREE.Mesh(G.glow,new THREE.MeshBasicMaterial({color:0xf2c230,transparent:true,opacity:.22}));gl.rotation.x=-Math.PI/2;gl.position.set(c[0],.008,c[1]);
+  levelGroup.add(sp,gl);items.push({x:c[0],y:c[1],name:L.items[idx],st:0,sp,gl})}}
+ const far=cells.filter(([x,y])=>Math.abs(x-sx)+Math.abs(y-sy)>6);
+ staff=[];for(let i=0;i<L.staff;i++){const c=far[i*7%far.length];const s=ent(c[0],c[1],4.2);Object.assign(s,STAFF[i],{rand:.6+i*.5,served:false,lazy:i===0});
+  s.view=makePerson({body:0x3c3f45,vest:s.vest,cap:s.vest});staff.push(s)}
+ custs=[];for(let i=0;i<L.cust;i++){const c=far[(i*11+5)%far.length];const s=ent(c[0],c[1],2.4);s.cool=0;s.view=makePerson({body:0x77736e,hair:0xc9c4bd});custs.push(s)}
+ powers=[];const goldM=M(0xf2c230,{metalness:.6,roughness:.3,emissive:0x4a3300});
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(MAP[y][x]==="P"){const g=new THREE.Group();const b=new THREE.Mesh(G.bell,goldM);b.castShadow=true;const cl=new THREE.Mesh(G.clap,goldM);cl.position.y=-.05;g.add(b,cl);g.position.set(x,.45,y);
+  const gl=new THREE.Mesh(G.glow,new THREE.MeshBasicMaterial({color:0xf2c230,transparent:true,opacity:.3}));gl.rotation.x=-Math.PI/2;gl.position.set(x,.008,y);levelGroup.add(g,gl);powers.push({x,y,on:true,g,gl})}
+ lastPC=null;renderList();updHud();
+}
+function bfs(sx,sy){const d=new Array(W*H).fill(99);const q=[[sx,sy]];d[sy*W+sx]=0;while(q.length){const[x,y]=q.shift();for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+a,ny=y+b;if(!wall(nx,ny)&&d[ny*W+nx]===99){d[ny*W+nx]=d[y*W+x]+1;q.push([nx,ny])}}}return d}
+function opts(e){return[[1,0],[-1,0],[0,1],[0,-1]].filter(([a,b])=>!wall(e.cx+a,e.cy+b))}
+function chooseNPC(e,kind){
+ let o=opts(e);const nr=o.filter(([a,b])=>!(a===-e.dx&&b===-e.dy));if(nr.length)o=nr;
+ if(kind==="staff"){
+  if(e.lazy&&Math.random()<.25&&dist[e.cy*W+e.cx]>5){e.wait=.6+Math.random();return[0,0]}
+  let best=o[0],bs=-1e9;for(const[a,b]of o){const s=dist[(e.cy+b)*W+e.cx+a]+Math.random()*e.rand*2;if(s>bs){bs=s;best=[a,b]}}return best}
+ return o[Math.floor(Math.random()*o.length)];
+}
+function advance(e,dt,choose){
+ if(e.wait>0){e.wait-=dt;return}
+ let sp=e.speed*(e.boost>0?1.45:1)*dt;
+ while(sp>0){
+  if(e.p===0||(e.cx===e.tx&&e.cy===e.ty)){
+   e.p=0;e.tx=e.cx;e.ty=e.cy;const[a,b]=choose(e);if(!a&&!b){e.dx=e.dy=0;return}
+   e.dx=a;e.dy=b;e.tx=e.cx+a;e.ty=e.cy+b;
+  }
+  const need=1-e.p;if(sp<need){e.p+=sp;sp=0}else{sp-=need;e.cx=e.tx;e.cy=e.ty;e.p=0;if(e.wait>0)return}
+ }
+}
+function choosePlayer(e){const[w0,w1]=e.want;if((w0||w1)&&!wall(e.cx+w0,e.cy+w1))return[w0,w1];
+ if((e.dx||e.dy)&&!wall(e.cx+e.dx,e.cy+e.dy))return[e.dx,e.dy];return[0,0]}
+function clearBubbles(){bubbles.forEach(b=>b.el.remove());bubbles=[]}
+function say(e,text,t=1.6){bubbles=bubbles.filter(b=>{if(b.e===e){b.el.remove();return false}return true});
+ const el=document.createElement("div");el.className="bubble";el.textContent=text;bubLayer.appendChild(el);bubbles.push({e,t,el})}
+function setWant(a,b){if(state!=="play")return;player.want=[a,b];
+ if(player.p>0&&a===-player.dx&&b===-player.dy&&(a||b)){[player.cx,player.tx]=[player.tx,player.cx];[player.cy,player.ty]=[player.ty,player.cy];player.p=1-player.p;player.dx=a;player.dy=b}}
+function near(a,b,r=.62){const[p,q]=pos(a),[s,t]=pos(b);return Math.hypot(p-s,q-t)<r}
+
+function update(dt){
+ if(state!=="play")return;
+ clock-=dt;if(clock<=0){clock=0;end(false);return}
+ if(freeze>0){freeze-=dt;if(freeze<=0){freeze=0;staff.forEach(s=>{s.served=false;say(s,"Nii, ma pean minema!")})}}
+ if(player.stun>0)player.stun-=dt;else advance(player,dt,choosePlayer);
+ const pc=player.cx+","+player.cy;if(pc!==lastPC){lastPC=pc;dist=bfs(player.cx,player.cy)}
+ const[fx,fy]=pos(player),px=Math.round(fx),py=Math.round(fy);
+ for(const it of items)if(it.st===0&&it.x===px&&it.y===py){it.st=1;renderList();say(player,"Kärus: "+it.name.split(" ")[0])}
+ for(const pw of powers)if(pw.on&&pw.x===px&&pw.y===py){pw.on=false;pw.g.visible=pw.gl.visible=false;freeze=6.5;staff.forEach(s=>{s.served=false;say(s,"Juhataja?!",1.2)})}
+ for(const s of staff){
+  if(s.boost>0)s.boost-=dt;
+  if(freeze<=0)advance(s,dt,e=>chooseNPC(e,"staff"));
+  if(near(player,s)){
+   if(freeze>0&&!s.served){
+    s.served=true;const c=items.filter(i=>i.st===1);
+    if(c.length){c.forEach(i=>i.st=2);renderList();say(s,"Vormistan "+c.length+" toodet!",2);
+     if(items.every(i=>i.st===2)){state="wait";setTimeout(()=>end(true),800)}}
+    else say(s,"Mida te soovite?");
+   }else if(freeze<=0&&s.boost<=0){s.boost=1.6;say(s,s.lines[Math.floor(Math.random()*s.lines.length)])}
+  }
+ }
+ for(const c of custs){
+  if(c.cool>0)c.cool-=dt;advance(c,dt,e=>chooseNPC(e,"cust"));
+  if(c.cool<=0&&player.stun<=0&&near(player,c,.7)){player.stun=1.8;c.cool=4;say(c,CUST_LINES[Math.floor(Math.random()*CUST_LINES.length)],1.9)}
+ }
+ bubbles=bubbles.filter(b=>{b.t-=dt;if(b.t<=0){b.el.remove();return false}return true});
+ updHud();
+}
+
+// ---------- render ----------
+const camPos=new THREE.Vector3(CX,14,CZ+10),camLook=new THREE.Vector3(CX,0,CZ),v3=new THREE.Vector3();
+function syncPerson(e,dt,t,{frozen=false,served=false,stunned=false}={}){
+ const V=e.view,[x,z]=pos(e);V.g.position.set(x,0,z);
+ const moving=(e.dx||e.dy)&&e.p>0&&!frozen&&!(e.wait>0)&&!stunned;
+ if(e.dx||e.dy){const target=Math.atan2(e.dx,e.dy);const d=Math.atan2(Math.sin(target-V.yaw),Math.cos(target-V.yaw));V.yaw+=d*Math.min(1,dt*14)}
+ V.g.rotation.y=V.yaw;
+ if(moving&&!reduced)V.ph+=dt*e.speed*(e.boost>0?1.45:1)*3.2;
+ const sw=moving&&!reduced?Math.sin(V.ph)*.65:0;
+ V.legL.rotation.x=sw;V.legR.rotation.x=-sw;V.armL.rotation.x=-sw*.8;V.armR.rotation.x=sw*.8;
+ V.inner.position.y=moving&&!reduced?Math.abs(Math.sin(V.ph))*.04:0;
+ V.inner.rotation.z=frozen&&!served&&!reduced?Math.sin(t*45)*.04:0;
+ V.ring.visible=frozen;V.ring.material.color.setHex(served?0x7fcf6b:0xf2c230);
+ V.bodyMat.emissive.setHex(stunned&&Math.floor(t*10)%2?0x551111:0x000000);
+}
+function render(dt,t){
+ if(!player){renderer.render(scene,camera);return}
+ syncPerson(player,dt,t,{stunned:player.stun>0});
+ for(const s of staff)syncPerson(s,dt,t,{frozen:freeze>0,served:s.served});
+ for(const c of custs)syncPerson(c,dt,t);
+ items.forEach((it,i)=>{const show=it.st===0;it.sp.visible=it.gl.visible=show;if(show)it.sp.position.y=.6+(reduced?0:Math.sin(t*3+i)*.06)});
+ for(const pw of powers)if(pw.on){pw.g.rotation.y=reduced?0:t*1.6;pw.g.position.y=.45+(reduced?0:Math.sin(t*4)*.05)}
+ const[px,pz]=pos(player);
+ const wantPos=camMode==="follow"?v3.set(px,10.5,pz+5):v3.set(CX,17.5,CZ+11.5);
+ const wantLook=camMode==="follow"?[px,0,pz-.4]:[CX,0,CZ+.6];
+ const k=reduced?1:Math.min(1,dt*5);
+ camPos.lerp(wantPos,k);camLook.lerp(new THREE.Vector3(...wantLook),k);
+ camera.position.copy(camPos);camera.lookAt(camLook);
+ renderer.render(scene,camera);
+ const cw=cv.clientWidth,ch=cv.clientHeight;
+ for(const b of bubbles){const[x,z]=pos(b.e);v3.set(x,1.3,z).project(camera);
+  const bw=b.el.offsetWidth,bh=b.el.offsetHeight;
+  let X=(v3.x+1)/2*cw-bw/2,Y=(1-v3.y)/2*ch-bh-6;X=Math.max(4,Math.min(cw-bw-4,X));Y=Math.max(4,Math.min(ch-bh-4,Y));
+  b.el.style.transform=`translate(${X}px,${Y}px)`}
+}
+function resize(){const w=stage.clientWidth;const h=Math.round(w<600?w*.95:Math.min(w*.62,640));
+ renderer.setSize(w,h,false);cv.style.height=h+"px";camera.aspect=w/h;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(stage);resize();
+
+// ---------- HUD / list ----------
+function fmt(){const m=Math.floor((L.time-clock)/L.time*60);return"19:"+String(Math.min(59,m)).padStart(2,"0")}
+function updHud(){document.getElementById("hLevel").textContent=`Tase ${lv+1} · ${L.name}`;document.getElementById("hClock").textContent=clock<=0?"20:00":fmt();
+ document.getElementById("hFreeze").textContent=freeze>0?`Personal tardunud ${freeze.toFixed(1)} s`:state==="paused"?"Paus":""}
+function renderList(){document.getElementById("listTitle").textContent="OSTUNIMEKIRI · "+L.name.toUpperCase();
+ const ol=document.getElementById("list");ol.innerHTML="";
+ items.forEach((it,i)=>{const li=document.createElement("li");li.className=["","cart","done"][it.st];
+  li.innerHTML=`<span class="num">${i+1}</span><span><span class="name"></span><span class="st">${["riiulis","kärus · vaja tellida","tellitud"][it.st]}</span></span>`;
+  li.querySelector(".name").textContent=it.name;ol.appendChild(li)});
+ // cart contents
+ while(cart.items.children.length)cart.items.remove(cart.items.children[0]);
+ items.filter(i=>i.st===1).forEach((it,k)=>{const idx=items.indexOf(it);const b=new THREE.Mesh(G.box,M(ITEM_COLORS[idx%ITEM_COLORS.length]));
+  b.scale.set(.15,.11+((idx*37)%5)*.02,.13);b.position.set(-.12+(k%3)*.12,.0+Math.floor(k/3)*.12,(k%2?.06:-.06));b.rotation.y=(idx*.7)%1-.5;b.castShadow=true;cart.items.add(b)});
+}
+
+// ---------- overlays ----------
+const ov=document.getElementById("ov"),card=document.getElementById("ovCard");
+function show(h,p,btn,fn,small){card.innerHTML=`<h2></h2><p></p>${small?'<p class="small"></p>':""}<button id="ovBtn" type="button"></button>`;
+ card.querySelector("h2").textContent=h;card.querySelector("p").textContent=p;if(small)card.querySelector(".small").textContent=small;
+ const b=document.getElementById("ovBtn");b.textContent=btn;b.onclick=()=>{ov.hidden=true;fn()};ov.hidden=false;b.focus()}
+function intro(){setup(0);state="intro";show("Kas siin keegi töötab?","Sul on vaja kuuri jaoks materjalid kokku saada. Kell on 19:00, pood suleb 20:00 ja teenindajad on täna eriti kiired.","Alusta",()=>state="play","Võta kuldne kell ja saad tellida. C vahetab kaamerat.")}
+function end(win){
+ if(win){state="between";
+  if(lv<LEVELS.length-1)show(`${L.name}: tellitud!`,`Kõik ${L.items.length} toodet on vormistatud. Järgmine projekt: ${LEVELS[lv+1].name.toLowerCase()}.`,"Edasi",()=>{setup(lv+1);state="play"});
+  else show("Kõik projektid valmis","Kuur, terrass ja saun on tellitud. Kassas on muidugi järjekord, aga see on juba järgmine mäng.","Mängi uuesti",()=>{setup(0);state="play"});
+ }else{state="over";const d=items.filter(i=>i.st===2).length;
+  show("Pood suleb","Turvamees saadab su välja. Tellitud said "+d+" toodet "+items.length+"-st. Tule homme uuesti.","Proovi uuesti",()=>{setup(lv);state="play"})}
+}
+
+// ---------- input ----------
+const camBtn=document.getElementById("camBtn");
+function toggleCam(){camMode=camMode==="follow"?"overview":"follow";camBtn.textContent="Kaamera: "+(camMode==="follow"?"jälgiv":"ülevaade")}
+camBtn.addEventListener("click",()=>{toggleCam();camBtn.blur()});
+const K={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0],W:[0,-1],S:[0,1],A:[-1,0],D:[1,0]};
+addEventListener("keydown",e=>{if(K[e.key]){e.preventDefault();setWant(...K[e.key])}
+ if(e.key==="c"||e.key==="C")toggleCam();
+ if((e.key==="p"||e.key==="P")&&(state==="play"||state==="paused")){state=state==="play"?"paused":"play";updHud()}});
+let ts=null;cv.addEventListener("pointerdown",e=>{ts=[e.clientX,e.clientY]});
+cv.addEventListener("pointermove",e=>{if(!ts)return;const dx=e.clientX-ts[0],dy=e.clientY-ts[1];if(Math.hypot(dx,dy)>18){Math.abs(dx)>Math.abs(dy)?setWant(Math.sign(dx),0):setWant(0,Math.sign(dy));ts=[e.clientX,e.clientY]}});
+addEventListener("pointerup",()=>ts=null);
+document.querySelectorAll(".pad button").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();setWant(...b.dataset.d.split(",").map(Number))}));
+
+// ---------- loop ----------
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);render(dt,now/1000);requestAnimationFrame(loop)}
+intro();requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

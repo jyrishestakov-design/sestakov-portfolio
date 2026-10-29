@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mängud · shesta.eu</title>
+<meta name="description" content="Jüri-Illimar Reinberg-Šestakovi brauserimängud.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#17181a;--panel:#222428;--line:#34373d;--fg:#ecebe6;--muted:#9a9c9f;--hazard:#f2c230;--rack:#e8792b;
+ --display:"Bungee","Impact",system-ui,sans-serif;--body:"Barlow Condensed","Arial Narrow",system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:18px;
+ padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+a{color:inherit}
+.back{color:var(--muted);text-decoration:none;font-weight:600}.back:hover{color:var(--hazard)}
+h1{font-family:var(--display);font-weight:400;color:var(--hazard);font-size:clamp(28px,6vw,44px);margin:0}
+.stripe{height:8px;background:repeating-linear-gradient(-45deg,var(--hazard) 0 12px,#111 12px 24px);border-radius:2px}
+.lead{margin:0;color:var(--muted);max-width:60ch;line-height:1.4}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;text-decoration:none}
+.card:hover,.card:focus-visible{border-color:var(--hazard);outline:none}
+.card h2{margin:0;font-family:var(--display);font-weight:400;font-size:20px;color:var(--fg)}
+.card p{margin:0;color:var(--muted);line-height:1.35}
+.tag{align-self:flex-start;font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;background:var(--hazard);color:#151515;padding:2px 8px;border-radius:3px}
+.tag.alt{background:var(--rack)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← shesta.eu</a>
+  <h1>Mängud</h1>
+  <div class="stripe"></div>
+  <p class="lead">Kas siin keegi töötab? Sul on vaja kuuri jaoks materjalid kokku saada, aga ehituspoe teenindajad jooksevad eest ära. Võta kell „Juhataja tuleb!“ ja nad tarduvad.</p>
+  <div class="grid">
+    <a class="card" href="teenindaja/"><span class="tag">2D</span><h2>Kas siin keegi töötab?</h2><p>Klassikaline ülaltvaade, töötab ka nõrgemas telefonis.</p></a>
+    <a class="card" href="teenindaja-3d/"><span class="tag alt">3D</span><h2>Kas siin keegi töötab? 3D</h2><p>Riiulid, käru ja jälgiv kaamera. C vahetab kaamerat.</p></a>
+  </div>
+</div>
+</body>
+</html>

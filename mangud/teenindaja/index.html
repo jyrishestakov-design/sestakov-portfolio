@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kas siin keegi töötab?</title>
+<meta name="description" content="Pacmani-laadne ehituspoe mäng: teenindajad jooksevad eest. Jüri-Illimar Reinberg-Šestakov, shesta.eu">
+<style>
+body{margin:0}
+[hidden]{display:none!important}
+.backlinks{max-width:1060px;margin:0 auto 10px;display:flex;gap:16px;flex-wrap:wrap;font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;font-size:16px;font-weight:600}
+.backlinks a{color:#9a9c9f;text-decoration:none}
+.backlinks a:hover,.backlinks a:focus-visible{color:#f2c230}
+</style>
+</head>
+<body>
+<nav class="backlinks"><a href="../../">← shesta.eu</a><a href="../">Kõik mängud</a><a href="../teenindaja-3d/">Mängi 3D-s →</a></nav>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Layout: arcade cabinet — HUD strip, canvas store floor, numbered shopping list beside (below on phones) */
+:root{
+  color-scheme: dark;
+  --bg:#17181a;          /* night-shift concrete */
+  --panel:#222428;
+  --line:#34373d;
+  --fg:#ecebe6;
+  --muted:#9a9c9f;
+  --hazard:#f2c230;      /* hazard yellow */
+  --rack:#e8792b;        /* pallet rack beam orange */
+  --ok:#7fcf6b;
+  --bad:#e5533f;
+  --display:"Bungee", "Impact", system-ui, sans-serif;
+  --body:"Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px;box-sizing:border-box}
+.wrap{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(20px,4vw,30px);margin:0;color:var(--hazard);letter-spacing:.02em;text-wrap:balance}
+.hud{display:flex;gap:14px;flex-wrap:wrap;font-variant-numeric:tabular-nums;font-weight:600;font-size:18px}
+.hud span b{color:var(--hazard);font-weight:700}
+.stripe{height:8px;background:repeating-linear-gradient(-45deg,var(--hazard) 0 12px,#111 12px 24px);border-radius:2px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;align-items:start}
+@media (max-width:760px){.main{grid-template-columns:1fr}}
+.stage{position:relative;min-width:0}
+canvas{display:block;width:100%;height:auto;border-radius:6px;background:#202225;touch-action:none}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,16,18,.84);border-radius:6px;padding:16px;box-sizing:border-box}
+.card{max-width:440px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.card h2{font-family:var(--display);font-weight:400;font-size:clamp(20px,4.5vw,30px);margin:0;color:var(--hazard);text-wrap:balance}
+.card p{margin:0;line-height:1.35;color:var(--fg)}
+.card .small{color:var(--muted);font-size:15px}
+button{font-family:var(--display);font-size:16px;background:var(--hazard);color:#151515;border:0;border-radius:4px;padding:10px 20px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+aside h3{margin:0;font-family:var(--display);font-weight:400;font-size:15px;letter-spacing:.04em;color:var(--muted)}
+ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+li{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start;line-height:1.15}
+.num{width:22px;height:22px;display:grid;place-items:center;background:var(--hazard);color:#151515;font-weight:700;border-radius:3px 3px 3px 9px;font-size:14px}
+.st{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+li.cart .st{color:var(--hazard)} li.done .st{color:var(--ok)}
+li.done .name{text-decoration:line-through;color:var(--muted)}
+li.done .num{background:var(--ok)}
+.legend{font-size:15px;color:var(--muted);line-height:1.35;border-top:1px solid var(--line);padding-top:10px}
+.legend b{color:var(--fg)}
+.pad{display:none;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,52px);gap:6px;justify-content:center}
+.pad button{padding:0;font-size:20px;background:var(--panel);color:var(--fg);border:1px solid var(--line)}
+.pad .u{grid-column:2;grid-row:1}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+@media (pointer:coarse){.pad{display:grid}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Kas siin keegi töötab?</h1>
+    <div class="hud">
+      <span id="hLevel">Tase 1 · Kuur</span>
+      <span>Kell <b id="hClock">19:00</b> · pood suleb 20:00</span>
+      <span id="hFreeze"></span>
+    </div>
+  </header>
+  <div class="stripe"></div>
+  <div class="main">
+    <div class="stage">
+      <canvas id="c" width="672" height="480" aria-label="Ehituspoe labürint"></canvas>
+      <div class="overlay" id="ov">
+        <div class="card" id="ovCard"></div>
+      </div>
+    </div>
+    <aside>
+      <h3 id="listTitle">OSTUNIMEKIRI</h3>
+      <ol id="list"></ol>
+      <div class="legend">
+        Korja nummerdatud hinnasildid kärusse. Teenindajad jooksevad eest. Võta <b>kollane kell</b> („Juhataja tuleb!“) ja nad tarduvad: puuduta neid ning tellimus on vormistatud. Hoia eemale <b>hallidest klientidest</b>.<br>Nooled / WASD, telefonis libista.
+      </div>
+      <div class="pad" aria-label="Juhtnupud">
+        <button class="u" data-d="0,-1" aria-label="Üles">▲</button>
+        <button class="l" data-d="-1,0" aria-label="Vasakule">◀</button>
+        <button class="d" data-d="0,1" aria-label="Alla">▼</button>
+        <button class="r" data-d="1,0" aria-label="Paremale">▶</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const MAP=[
+"#####################",
+"#P........#........P#",
+"#.###.###.#.###.###.#",
+"#...................#",
+"#.###.#.#####.#.###.#",
+"#.....#...#...#.....#",
+"###.#.###.#.###.#.###",
+"#...#...........#...#",
+"#.#.#.###.#.###.#.#.#",
+"#.#...#...#...#...#.#",
+"#.###.#.#####.#.###.#",
+"#.........S.........#",
+"#.###.###.#.###.###.#",
+"#P..#...........#..P#",
+"#####################"];
+const W=21,H=15,T=32;
+const LEVELS=[
+ {name:"Kuur",time:120,staff:3,cust:1,items:["Saematerjal 45×95×3000","OSB-3 plaat 12 mm","Puidukruvid 5×80, 500 tk","Rullkatusepapp 10 m²","Uksehinged, 2 tk"]},
+ {name:"Terrass",time:140,staff:4,cust:2,items:["Terrassilaud 28×120×4200","Vundamendiplokk 200×200","Terrassikruvid A4 4,2×55","Puiduõli 2,7 l","Kruvivundament 76×800","Geotekstiil 2×25 m"]},
+ {name:"Saun",time:160,staff:4,cust:3,items:["Voodrilaud haab 15×90","Alumiiniumfoolium 10 m","Kerisekivid 20 kg","Kivivill 50 mm","Klaasist saunauks 7×19","Leiliruumi valgusti","Liistud 15×42"]}
+];
+const STAFF=[
+ {name:"Toomas",vest:"#c9e83a",lines:["Kohe tulen!","See pole minu osakond","Küsige kassast"]},
+ {name:"Marika",vest:"#4fd1c5",lines:["Lähen lattu vaatan","Üks hetk!","Mul on paus"]},
+ {name:"Ants",vest:"#f28fb4",lines:["Telefon heliseb","Kolleeg tuleb kohe","Seda meil pole"]},
+ {name:"Kaido",vest:"#9db4ff",lines:["Vaatan arvutist","Ma olen siin praktikant","Kohvipaus!"]}
+];
+const CUST_LINES=["Vabandage, kas te töötate siin?","Kas teil on 6 mm tüübleid?","Kus siin WC on?","Ma olin enne!"];
+const wall=(x,y)=>x<0||y<0||x>=W||y>=H||MAP[y][x]==="#";
+const cv=document.getElementById("c"),ctx=cv.getContext("2d");
+let reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// pre-seeded rack decorations
+const boxes=[];{let s=7;const r=()=>(s=(s*9301+49297)%233280)/233280;
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(wall(x,y)){const n=1+Math.floor(r()*3);for(let i=0;i<n;i++)boxes.push({x,y,ox:4+r()*16,oy:4+r()*14,w:7+r()*8,h:6+r()*7,c:["#b98a55","#8c6b45","#c9b28a","#6f7d88","#a6513a"][Math.floor(r()*5)]})}}
+
+let L,lv=0,state="intro",player,staff,custs,items,powers,clock,freeze,dist,lastPC,bubbles,msg;
+function floorCells(){const a=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(!wall(x,y))a.push([x,y]);return a}
+function ent(x,y,speed){return{cx:x,cy:y,tx:x,ty:y,p:0,dx:0,dy:0,speed,boost:0}}
+function pos(e){return[e.cx+(e.tx-e.cx)*e.p,e.cy+(e.ty-e.cy)*e.p]}
+function setup(n){
+ lv=n;L=LEVELS[n];clock=L.time;freeze=0;bubbles=[];
+ const start=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(MAP[y][x]==="S")start.push(x,y);
+ player=ent(start[0],start[1],5);player.want=[0,0];player.stun=0;
+ const cells=floorCells().filter(([x,y])=>MAP[y][x]==="."&&Math.abs(x-start[0])+Math.abs(y-start[1])>3);
+ const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+ shuffle(cells);
+ items=[];for(const c of cells){if(items.length>=L.items.length)break;if(items.every(i=>Math.abs(i.x-c[0])+Math.abs(i.y-c[1])>=4))items.push({x:c[0],y:c[1],name:L.items[items.length],st:0})}
+ const far=cells.filter(([x,y])=>Math.abs(x-start[0])+Math.abs(y-start[1])>6);
+ staff=[];for(let i=0;i<L.staff;i++){const c=far[i*7%far.length];const s=ent(c[0],c[1],4.2);Object.assign(s,STAFF[i],{rand:.6+i*.5,served:false,lazy:i===0});staff.push(s)}
+ custs=[];for(let i=0;i<L.cust;i++){const c=far[(i*11+5)%far.length];const s=ent(c[0],c[1],2.4);s.cool=0;custs.push(s)}
+ powers=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(MAP[y][x]==="P")powers.push({x,y,on:true});
+ lastPC=null;renderList();updHud();
+}
+function bfs(sx,sy){const d=new Array(W*H).fill(99);const q=[[sx,sy]];d[sy*W+sx]=0;while(q.length){const[x,y]=q.shift();for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+a,ny=y+b;if(!wall(nx,ny)&&d[ny*W+nx]===99){d[ny*W+nx]=d[y*W+x]+1;q.push([nx,ny])}}}return d}
+function opts(e){return[[1,0],[-1,0],[0,1],[0,-1]].filter(([a,b])=>!wall(e.cx+a,e.cy+b))}
+function chooseNPC(e,kind){
+ let o=opts(e);const nr=o.filter(([a,b])=>!(a===-e.dx&&b===-e.dy));if(nr.length)o=nr;
+ if(kind==="staff"){
+  if(e.lazy&&Math.random()<.25&&dist[e.cy*W+e.cx]>5){e.wait=.6+Math.random();return[0,0]}
+  let best=o[0],bs=-1e9;for(const[a,b]of o){const s=dist[(e.cy+b)*W+e.cx+a]+Math.random()*e.rand*2;if(s>bs){bs=s;best=[a,b]}}return best}
+ return o[Math.floor(Math.random()*o.length)];
+}
+function advance(e,dt,choose){
+ if(e.wait>0){e.wait-=dt;return}
+ let sp=e.speed*(e.boost>0?1.45:1)*dt;
+ while(sp>0){
+  if(e.p===0||(e.cx===e.tx&&e.cy===e.ty)){
+   e.p=0;e.tx=e.cx;e.ty=e.cy;const[a,b]=choose(e);if(!a&&!b){e.dx=e.dy=0;return}
+   e.dx=a;e.dy=b;e.tx=e.cx+a;e.ty=e.cy+b;
+  }
+  const need=1-e.p;if(sp<need){e.p+=sp;sp=0}else{sp-=need;e.cx=e.tx;e.cy=e.ty;e.p=0;if(e.wait>0)return}
+ }
+}
+function choosePlayer(e){
+ const[w0,w1]=e.want;if((w0||w1)&&!wall(e.cx+w0,e.cy+w1))return[w0,w1];
+ if((e.dx||e.dy)&&!wall(e.cx+e.dx,e.cy+e.dy))return[e.dx,e.dy];return[0,0];
+}
+function say(e,text,t=1.6){bubbles=bubbles.filter(b=>b.e!==e);bubbles.push({e,text,t})}
+function setWant(a,b){if(state!=="play")return;player.want=[a,b];
+ // instant reversal
+ if(player.p>0&&a===-player.dx&&b===-player.dy&&(a||b)){[player.cx,player.tx]=[player.tx,player.cx];[player.cy,player.ty]=[player.ty,player.cy];player.p=1-player.p;player.dx=a;player.dy=b}}
+function near(a,b,r=.62){const[p,q]=pos(a),[s,t]=pos(b);return Math.hypot(p-s,q-t)<r}
+
+function update(dt){
+ if(state!=="play")return;
+ clock-=dt;if(clock<=0){clock=0;end(false);return}
+ if(freeze>0){freeze-=dt;if(freeze<=0){freeze=0;staff.forEach(s=>{s.served=false;say(s,"Nii, ma pean minema!")})}}
+ if(player.stun>0)player.stun-=dt;else advance(player,dt,choosePlayer);
+ const pc=player.cx+","+player.cy;if(pc!==lastPC){lastPC=pc;dist=bfs(player.cx,player.cy)}
+ const[px,py]=[Math.round(pos(player)[0]),Math.round(pos(player)[1])];
+ for(const it of items)if(it.st===0&&it.x===px&&it.y===py){it.st=1;renderList();say(player,"Kärus: "+it.name.split(" ")[0])}
+ for(const pw of powers)if(pw.on&&pw.x===px&&pw.y===py){pw.on=false;freeze=6.5;staff.forEach(s=>{s.served=false;say(s,"Juhataja?!",1.2)})}
+ for(const s of staff){
+  if(s.boost>0)s.boost-=dt;
+  if(freeze<=0)advance(s,dt,e=>chooseNPC(e,"staff"));
+  if(near(player,s)){
+   if(freeze>0&&!s.served){
+    s.served=true;const cart=items.filter(i=>i.st===1);
+    if(cart.length){cart.forEach(i=>i.st=2);renderList();say(s,"Vormistan "+cart.length+" toodet!",2);
+     if(items.every(i=>i.st===2)){setTimeout(()=>end(true),700);state="wait"}}
+    else say(s,"Mida te soovite?");
+   }else if(freeze<=0&&s.boost<=0){s.boost=1.6;say(s,s.lines[Math.floor(Math.random()*s.lines.length)])}
+  }
+ }
+ for(const c of custs){
+  if(c.cool>0)c.cool-=dt;advance(c,dt,e=>chooseNPC(e,"cust"));
+  if(c.cool<=0&&player.stun<=0&&near(player,c,.7)){player.stun=1.8;c.cool=4;say(c,CUST_LINES[Math.floor(Math.random()*CUST_LINES.length)],1.9)}
+ }
+ bubbles.forEach(b=>b.t-=dt);bubbles=bubbles.filter(b=>b.t>0);
+ updHud();
+}
+
+// drawing
+function person(e,body,head,vest,frozen,tick){
+ const[x,y]=pos(e);const X=x*T+T/2,Y=y*T+T/2;
+ const bob=reduced?0:Math.sin(tick*12+(e.cx+e.cy))*1.2*((e.dx||e.dy)&&!frozen?1:0);
+ ctx.save();ctx.translate(X,Y+bob);
+ if(frozen){ctx.strokeStyle="#f2c230";ctx.lineWidth=2;ctx.setLineDash([3,3]);ctx.beginPath();ctx.arc(0,0,14,0,7);ctx.stroke();ctx.setLineDash([])}
+ ctx.fillStyle="rgba(0,0,0,.35)";ctx.beginPath();ctx.ellipse(0,9,10,4,0,0,7);ctx.fill();
+ ctx.fillStyle=body;ctx.beginPath();ctx.roundRect(-9,-4,18,14,5);ctx.fill();
+ if(vest){ctx.fillStyle=vest;ctx.fillRect(-9,-2,18,9);ctx.fillStyle="#eee";ctx.fillRect(-9,2,18,2)}
+ ctx.fillStyle=head;ctx.beginPath();ctx.arc(0,-8,6.5,0,7);ctx.fill();
+ ctx.restore();
+}
+function draw(tick){
+ ctx.fillStyle="#2a2c2f";ctx.fillRect(0,0,cv.width,cv.height);
+ // floor tiles
+ ctx.strokeStyle="rgba(255,255,255,.035)";ctx.lineWidth=1;
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(!wall(x,y))ctx.strokeRect(x*T+.5,y*T+.5,T-1,T-1);
+ // racks
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(wall(x,y)){ctx.fillStyle="#1d3550";ctx.fillRect(x*T,y*T,T,T)}
+ for(const b of boxes){ctx.fillStyle=b.c;ctx.fillRect(b.x*T+b.ox,b.y*T+b.oy,b.w,b.h)}
+ ctx.fillStyle="#e8792b";
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(wall(x,y)){
+  if(!wall(x,y-1)||y===0)ctx.fillRect(x*T,y*T,T,3);if(!wall(x,y+1)||y===H-1)ctx.fillRect(x*T,y*T+T-3,T,3);
+  if(!wall(x-1,y)||x===0)ctx.fillRect(x*T,y*T,3,T);if(!wall(x+1,y)||x===W-1)ctx.fillRect(x*T+T-3,y*T,3,T)}
+ // power-ups: bell
+ for(const pw of powers)if(pw.on){const X=pw.x*T+T/2,Y=pw.y*T+T/2,s=reduced?1:1+Math.sin(tick*6)*.12;
+  ctx.save();ctx.translate(X,Y);ctx.scale(s,s);ctx.fillStyle="#f2c230";ctx.beginPath();ctx.moveTo(-9,6);ctx.quadraticCurveTo(-8,-10,0,-10);ctx.quadraticCurveTo(8,-10,9,6);ctx.closePath();ctx.fill();
+  ctx.fillRect(-11,5,22,3);ctx.beginPath();ctx.arc(0,10,2.6,0,7);ctx.fill();ctx.restore()}
+ // price tags
+ items.forEach((it,i)=>{if(it.st)return;const X=it.x*T+T/2,Y=it.y*T+T/2;ctx.save();ctx.translate(X,Y);ctx.rotate(-.18);
+  ctx.fillStyle="#f2c230";ctx.beginPath();ctx.moveTo(-9,-8);ctx.lineTo(6,-8);ctx.lineTo(11,0);ctx.lineTo(6,8);ctx.lineTo(-9,8);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#151515";ctx.font="700 13px 'Barlow Condensed',sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(i+1,-1,1);ctx.restore()});
+ for(const c of custs)person(c,"#6d6a66","#d8b89a",null,false,tick);
+ const fz=freeze>0&&(freeze>1.5||reduced||Math.floor(tick*8)%2===0);
+ for(const s of staff)person(s,"#3c3f45","#e6c3a2",s.vest,freeze>0&&!s.served?fz:false,tick);
+ person(player,player.stun>0&&!reduced&&Math.floor(tick*10)%2?"#7a2a22":"#d9483b","#f0cfae",null,false,tick);
+ // cart count over player
+ const cart=items.filter(i=>i.st===1).length;
+ if(cart){const[x,y]=pos(player);ctx.fillStyle="#f2c230";ctx.beginPath();ctx.arc(x*T+T-4,y*T+5,7,0,7);ctx.fill();ctx.fillStyle="#151515";ctx.font="700 11px 'Barlow Condensed',sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(cart,x*T+T-4,y*T+5.5)}
+ // bubbles
+ ctx.font="600 14px 'Barlow Condensed',sans-serif";ctx.textBaseline="middle";
+ for(const b of bubbles){const[x,y]=pos(b.e);const w=ctx.measureText(b.text).width+12;let X=x*T+T/2-w/2;X=Math.max(2,Math.min(cv.width-w-2,X));let Y=y*T-12;if(Y<4)Y=y*T+T+12;
+  ctx.fillStyle="#ecebe6";ctx.beginPath();ctx.roundRect(X,Y-10,w,20,5);ctx.fill();ctx.fillStyle="#151515";ctx.textAlign="left";ctx.fillText(b.text,X+6,Y+1)}
+}
+// HUD
+function fmt(){const m=Math.floor((L.time-clock)/L.time*60);return"19:"+String(Math.min(59,m)).padStart(2,"0")}
+function updHud(){document.getElementById("hLevel").textContent=`Tase ${lv+1} · ${L.name}`;document.getElementById("hClock").textContent=clock<=0?"20:00":fmt();
+ document.getElementById("hFreeze").textContent=freeze>0?`Personal tardunud ${freeze.toFixed(1)} s`:""}
+function renderList(){document.getElementById("listTitle").textContent="OSTUNIMEKIRI · "+L.name.toUpperCase();
+ const ol=document.getElementById("list");ol.innerHTML="";
+ items.forEach((it,i)=>{const li=document.createElement("li");li.className=["","cart","done"][it.st];
+  li.innerHTML=`<span class="num">${i+1}</span><span><span class="name"></span><span class="st">${["riiulis","kärus · vaja tellida","tellitud"][it.st]}</span></span>`;
+  li.querySelector(".name").textContent=it.name;ol.appendChild(li)})}
+// overlays
+const ov=document.getElementById("ov"),card=document.getElementById("ovCard");
+function show(h,p,btn,fn,small){card.innerHTML=`<h2></h2><p></p>${small?'<p class="small"></p>':""}<button id="ovBtn"></button>`;
+ card.querySelector("h2").textContent=h;card.querySelector("p").textContent=p;if(small)card.querySelector(".small").textContent=small;
+ const b=document.getElementById("ovBtn");b.textContent=btn;b.onclick=()=>{ov.hidden=true;fn()};ov.hidden=false;b.focus()}
+function intro(){setup(0);state="intro";show("Kas siin keegi töötab?","Sul on vaja kuuri jaoks materjalid kokku saada. Kell on 19:00, pood suleb 20:00 ja teenindajad on täna eriti kiired.","Alusta",()=>state="play","Võta kollane kell ja saad tellida.")}
+function end(win){
+ if(win){state="between";
+  if(lv<LEVELS.length-1)show(`${L.name}: tellitud!`,`Kõik ${L.items.length} toodet on vormistatud. Järgmine projekt: ${LEVELS[lv+1].name.toLowerCase()}.`,"Edasi",()=>{setup(lv+1);state="play"});
+  else show("Kõik projektid valmis","Kuur, terrass ja saun on tellitud. Kassas on muidugi järjekord, aga see on juba järgmine mäng.","Mängi uuesti",()=>{setup(0);state="play"});
+ }else{state="over";const d=items.filter(i=>i.st===2).length;
+  show("Pood suleb","Turvamees saadab su välja. Tellitud said "+d+" toodet "+items.length+"-st. Tule homme uuesti.","Proovi uuesti",()=>{setup(lv);state="play"})}
+}
+// input
+const K={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0],W:[0,-1],S:[0,1],A:[-1,0],D:[1,0]};
+addEventListener("keydown",e=>{if(K[e.key]){e.preventDefault();setWant(...K[e.key])}
+ if((e.key==="p"||e.key==="P")&&(state==="play"||state==="paused")){state=state==="play"?"paused":"play"}});
+let ts=null;cv.addEventListener("pointerdown",e=>{ts=[e.clientX,e.clientY]});
+cv.addEventListener("pointermove",e=>{if(!ts)return;const dx=e.clientX-ts[0],dy=e.clientY-ts[1];if(Math.hypot(dx,dy)>18){Math.abs(dx)>Math.abs(dy)?setWant(Math.sign(dx),0):setWant(0,Math.sign(dy));ts=[e.clientX,e.clientY]}});
+addEventListener("pointerup",()=>ts=null);
+document.querySelectorAll(".pad button").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();setWant(...b.dataset.d.split(",").map(Number))}));
+// loop
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);draw(now/1000);requestAnimationFrame(loop)}
+intro();requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>
