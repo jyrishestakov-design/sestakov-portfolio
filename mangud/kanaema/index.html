@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kanaema</title>
+<meta name="description" content="Kanaema — kana haub taluõuel munadest tibusid ja hüppab üle rebaste. Jüri-Illimar Reinberg-Šestakov, shesta.eu">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chango&family=Silkscreen:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+  /* Paik: päikseline taluõu — rohumaa-roheline lehekülg, õlgkollased aktsendid, laudapunane.
+     Üks visuaalne maailm (mõlemas teemas sama), seepärast kõik värvid otse. */
+  :root {
+    --meadow: #2c4f24;      /* lehe taust */
+    --meadow-deep: #1f3a19;
+    --straw: #f1c75b;       /* aktsent */
+    --barn: #b8392c;        /* teine aktsent */
+    --cream: #fbf3df;       /* tekst */
+    --muted: #b9cba4;       /* teisene tekst */
+    --line: rgba(251, 243, 223, 0.16);
+    --display: "Chango", "Arial Black", system-ui, sans-serif;
+    --pixel: "Silkscreen", ui-monospace, "Courier New", monospace;
+    --body: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--meadow);
+    color: var(--cream);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 40px;
+    display: grid;
+    gap: 18px;
+  }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(34px, 6vw, 56px);
+    line-height: 1;
+    margin: 0;
+    color: var(--straw);
+    letter-spacing: 0.01em;
+    text-shadow: 3px 3px 0 var(--barn);
+  }
+  header p { margin: 0; color: var(--muted); max-width: 60ch; text-wrap: pretty; }
+
+  .stage {
+    position: relative;
+    border: 3px solid var(--meadow-deep);
+    box-shadow: 0 0 0 3px var(--straw), 6px 8px 0 3px var(--meadow-deep);
+    background: #8fd0f0;
+    height: clamp(240px, 40vw, 430px);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    outline: none;
+  }
+  .stage:focus-visible { box-shadow: 0 0 0 3px var(--cream), 6px 8px 0 3px var(--meadow-deep); }
+  .stage canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+  .mute {
+    position: absolute; right: 8px; bottom: 8px;
+    font-family: var(--pixel); font-size: 11px;
+    background: rgba(31, 58, 25, 0.75); color: var(--cream);
+    border: 1px solid var(--line); padding: 4px 8px; cursor: pointer;
+  }
+  .mute:focus-visible { outline: 2px solid var(--straw); outline-offset: 2px; }
+
+  .keys {
+    display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+    font-family: var(--pixel); font-size: 12px; color: var(--muted);
+  }
+  .keys li { list-style: none; display: flex; gap: 6px; align-items: center; }
+  .keys ul { display: contents; margin: 0; padding: 0; }
+  kbd {
+    font-family: var(--pixel); font-size: 11px; color: var(--cream);
+    border: 1px solid var(--line); border-bottom-width: 3px; padding: 1px 6px; background: var(--meadow-deep);
+  }
+  .tip { color: var(--straw); flex-basis: 100%; font-family: var(--body); font-size: 14px; }
+  .touch-only { display: none; }
+  @media (pointer: coarse) { .touch-only { display: block; } .key-only { display: none !important; } }
+
+  .coll { display: grid; gap: 10px; }
+  .coll h2 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0; color: var(--cream); }
+  .coll > p { margin: 0; color: var(--muted); }
+  .breeds { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .breed {
+    border: 1px solid var(--line); background: var(--meadow-deep);
+    padding: 10px; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center;
+    min-width: 0;
+  }
+  .breed canvas { grid-row: span 3; width: 44px; height: 44px; image-rendering: pixelated; }
+  .breed b { font-size: 14px; line-height: 1.2; min-width: 0; }
+  .breed span { font-family: var(--pixel); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .breed.locked b { color: var(--muted); }
+  .breed.new { border-color: var(--straw); }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+.backlinks{max-width:1100px;margin:0 auto;display:flex;gap:16px;flex-wrap:wrap;padding:14px max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));font-family:var(--body);font-size:15px;font-weight:700}
+  .backlinks a{color:var(--muted);text-decoration:none}
+  .backlinks a:hover,.backlinks a:focus-visible{color:var(--straw)}
+</style>
+
+</head>
+<body>
+<nav class="backlinks"><a href="../../">← shesta.eu</a><a href="../">Kõik mängud</a></nav>
+<div class="wrap">
+  <header>
+    <h1>Kanaema</h1>
+    <p>Kana jookseb mööda taluõue. Hüppa munadele ja haudu tibud välja, suurt muna tuleb kauem hautada. Rebastest hüppa üle. Kui munast tuleb kukk, kõlab kikerikii ja elud saavad täis.</p>
+  </header>
+
+  <div class="stage" id="stage" tabindex="0" aria-label="Kanaema mäng: tühik või nool üles hüppab, nooled vasakule ja paremale liigutavad kana">
+    <canvas id="cv"></canvas>
+    <button class="mute" id="mute" type="button">HELI: SEES</button>
+  </div>
+
+  <div class="keys" aria-label="Juhtimine">
+    <ul class="key-only">
+      <li><kbd>Tühik</kbd> start</li>
+      <li><kbd>↑</kbd> hüpe</li>
+      <li><kbd>← →</kbd> liigu</li>
+      <li><kbd>↓</kbd> kiirem maandumine</li>
+      <li><kbd>M</kbd> heli</li>
+    </ul>
+    <p class="touch-only">Puuduta mänguala keskel: hüpe · vasakus servas: kana liigub tagasi · paremas servas: edasi</p>
+    <p class="tip">Muna kohal kasvab ring, ja kui see saab täis, koorub tibu. Kui rebane tuleb, hüppa otse üles ja maandu tagasi samale munale, siis haudumine jätkub.</p>
+  </div>
+
+  <section class="coll" aria-labelledby="coll-h">
+    <h2 id="coll-h">Tibukogu</h2>
+    <p>Mängu edenedes tulevad uued tõud. Siin on kirjas, mitu tibu igast tõust oled välja haudunud: selles mängus ja kokku.</p>
+    <div class="breeds" id="breeds"></div>
+  </section>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  // ------------------------------------------------------------------
+  // Kanaema — sama mootor nagu Viking Rideril: loogiline kõrgus 120 ühikut,
+  // laius tuleb ekraani kujust; kõik on pikslikunst ühikuruudustikus.
+  // ------------------------------------------------------------------
+  const H = 100, GROUND = 87;
+  const GRAV = 0.28, JUMP_V = -4.7;
+  const LIVES_START = 3, LIVES_MAX = 5;
+  const INVULN = 90;
+  const ROOSTER_CHANCE = 0.14, ROOSTER_PITY = 8;
+
+  const stage = document.getElementById('stage');
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  let LW = 300, scale = 1, dpr = 1;
+
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('kanaema:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('kanaema:' + k, JSON.stringify(v)); } catch {} },
+  };
+
+  // ---- tõud: muna ja tibu ----
+  const BREEDS = [
+    { id: 'maa', name: 'Eesti maatõug', egg: { w: 8, h: 10, c: '#f3ead8', s: '#d6c7aa' }, chick: ['#f7d94c', '#d9b52c'], hatch: 100 },
+    { id: 'rir', name: 'Rhode Island', egg: { w: 9, h: 11, c: '#c98a52', s: '#a46a38' }, chick: ['#c98a52', '#9b5f30'], hatch: 130 },
+    { id: 'ara', name: 'Araucana', egg: { w: 9, h: 11, c: '#9fd2c3', s: '#78ad9e' }, chick: ['#9aa0a8', '#6b7079'], stripe: true, hatch: 150 },
+    { id: 'mar', name: 'Marans', egg: { w: 10, h: 12, c: '#7c4b2e', s: '#5a321e', dots: '#3c1f10' }, chick: ['#3d3633', '#221d1b'], hatch: 175 },
+    { id: 'sii', name: 'Siidikana', egg: { w: 7, h: 9, c: '#f8f0e3', s: '#ddd0bb' }, chick: ['#fdfcf8', '#d9d4ca'], fluffy: true, hatch: 85 },
+    { id: 'bra', name: 'Brahma', egg: { w: 12, h: 15, c: '#e4c69c', s: '#c4a273', dots: '#b08a5a' }, chick: ['#eab94c', '#c4902a'], hatch: 240 },
+    { id: 'kul', name: 'Kuldmuna', egg: { w: 11, h: 14, c: '#f2c94c', s: '#c99a1e', shine: true }, chick: ['#ffd84a', '#e0a81c'], gold: true, hatch: 210 },
+  ];
+  const HATCH_PER_LEVEL = 4;
+
+  // ---- pikslisprite'id tekstist ----
+  function sprite(rows, pal) {
+    const w = Math.max(...rows.map(r => r.length)), h = rows.length;
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    rows.forEach((r, y) => [...r].forEach((ch, x) => { if (pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+    return c;
+  }
+  const HEN_PAL = { b: '#b5622a', l: '#e39d58', d: '#8c4519', t: '#5a2c10', r: '#d6302c', y: '#f2b33d', k: '#1b1410', o: '#e5891f', w: '#fff4e0' };
+  const HEN = {
+    walk0: sprite([
+      '..........rr......',
+      '.........rrrr.....',
+      '........bbbbbb....',
+      '.......bbbbwkbb...',
+      '.......bbbbbbbyy..',
+      '..t....bbbbbbbyyy.',
+      '.tt...bbbbbbbbr...',
+      'ttt.bbbbbbbbbbr...',
+      'tttbbbbbbbbbbb....',
+      '.tbbbbllllbbbb....',
+      '.bbbblllllldbb....',
+      '..bbbbllllbbb.....',
+      '...dbbbbbbbd......',
+      '.....o...o........',
+      '.....o...o........',
+      '....oo..oo........',
+    ], HEN_PAL),
+    walk1: sprite([
+      '..........rr......',
+      '.........rrrr.....',
+      '........bbbbbb....',
+      '.......bbbbwkbb...',
+      '.......bbbbbbbyy..',
+      '..t....bbbbbbbyyy.',
+      '.tt...bbbbbbbbr...',
+      'ttt.bbbbbbbbbbr...',
+      'tttbbbbbbbbbbb....',
+      '.tbbbbllllbbbb....',
+      '.bbbblllllldbb....',
+      '..bbbbllllbbb.....',
+      '...dbbbbbbbd......',
+      '......o.o.........',
+      '.....o...o........',
+      '....oo....oo......',
+    ], HEN_PAL),
+    jump: sprite([
+      '..........rr......',
+      '.........rrrr.....',
+      '........bbbbbb....',
+      '...ll..bbbbwkbb...',
+      '..llll.bbbbbbbyy..',
+      '..tllllbbbbbbbyyy.',
+      '.tt.llbbbbbbbbr...',
+      'ttt.bbbbbbbbbbr...',
+      'tttbbbbbbbbbbb....',
+      '.tbbbbbbbbbbbb....',
+      '.bbbbbbbbbbbdb....',
+      '..bbbbbbbbbbb.....',
+      '...dbbbbbbbd......',
+      '....o.o...........',
+      '...o.o............',
+    ], HEN_PAL),
+    sit: sprite([
+      '..........rr......',
+      '.........rrrr.....',
+      '........bbbbbb....',
+      '.......bbbbwkbb...',
+      '.......bbbbbbbyy..',
+      '..t....bbbbbbbyyy.',
+      '.tt...bbbbbbbbr...',
+      'ttt.bbbbbbbbbbr...',
+      'tttbbbbbbbbbbbb...',
+      '.tbbbbllllllbbb...',
+      'bbbblllllllldbbb..',
+      'bbbbbllllllbbbbb..',
+      '.dbbbbbbbbbbbbd...',
+      '..ddbbbbbbbbdd....',
+    ], HEN_PAL),
+    sitBlink: null,
+  };
+  HEN.sitBlink = sprite([
+    '..........rr......',
+    '.........rrrr.....',
+    '........bbbbbb....',
+    '.......bbbbbdbb...',
+    '.......bbbbbbbyy..',
+    '..t....bbbbbbbyyy.',
+    '.tt...bbbbbbbbr...',
+    'ttt.bbbbbbbbbbr...',
+    'tttbbbbbbbbbbbb...',
+    '.tbbbbllllllbbb...',
+    'bbbblllllllldbbb..',
+    'bbbbbllllllbbbbb..',
+    '.dbbbbbbbbbbbbd...',
+    '..ddbbbbbbbbdd....',
+  ], HEN_PAL);
+  const FOX_PAL = { o: '#e0702a', d: '#b4521a', w: '#f5efe6', n: '#2a1a14', k: '#1b1410' };
+  const FOX = [
+    sprite([
+      '..o..o......................',
+      '..oo.oo.....................',
+      '..ooooo.....................',
+      '.ookoooo....................',
+      'nooooooo................ddd.',
+      '.wwoooooooooooooooooo..doooo',
+      '..wwoooooooooooooooooooooooo',
+      '....oooooooooooooooooo.oooww',
+      '.....odo.....odo.......ooww.',
+      '....od..o...od..o.......ww..',
+      '...nn....n.nn....n..........',
+    ], FOX_PAL),
+    sprite([
+      '..o..o......................',
+      '..oo.oo.....................',
+      '..ooooo.....................',
+      '.ookoooo................ddd.',
+      'nooooooo...............doooo',
+      '.wwoooooooooooooooooooooooww',
+      '..wwoooooooooooooooooooooww.',
+      '....oooooooooooooooooo...ww.',
+      '......ood.....ood...........',
+      '.....o..d....o..d...........',
+      '.....n...n...n...n..........',
+    ], FOX_PAL),
+  ];
+
+  function chickSprites(b) {
+    const [c, s] = b.chick;
+    const pal = { c, s, k: '#1b1410', y: '#f29a2e', o: '#e5891f', r: '#d6302c', t: '#2f6b3a', g: '#ffffff' };
+    const body = b.fluffy
+      ? ['.gcc.....', 'gcckcg...', 'gccccyy..', 'cccccccg.', 'gccccccg.', '.gccccg..']
+      : ['..cc.....', '.cckc....', '.ccccyy..', 'cccccc...', 'cccccs...', '.cccs....'];
+    if (b.stripe) body[3] = 'cscscs...', body[4] = 'cccccs...';
+    const legs = [['..o.o....'], ['.o...o...']];
+    const rooster = [
+      '...rr....', '..rrr....', '..cccc...', '.ccckcy..', 't.cccccyy', 'ttcccccr.', 'tcccccc..', '.ccccss..',
+    ];
+    return {
+      chick: [sprite([...body, ...legs[0]], pal), sprite([...body, ...legs[1]], pal)],
+      rooster: [sprite([...rooster, '..o.o....'], pal), sprite([...rooster, '.o...o...'], pal)],
+    };
+  }
+  BREEDS.forEach(b => { b.spr = chickSprites(b); });
+
+  // muna (ovaal, vari, helk, täpid) — joonistatakse otse
+  function drawEgg(g, x, y, e, wob = 0, crack = 0) {
+    const cx = x + e.w / 2, cy = y + e.h / 2;
+    g.save();
+    g.translate(cx, y + e.h);
+    g.rotate(wob);
+    g.translate(-cx, -(y + e.h));
+    g.fillStyle = e.s;
+    g.beginPath(); g.ellipse(cx, cy + 0.5, e.w / 2, e.h / 2, 0, 0, 6.283); g.fill();
+    g.fillStyle = e.c;
+    g.beginPath(); g.ellipse(cx - 0.4, cy, e.w / 2 - 0.6, e.h / 2 - 0.6, 0, 0, 6.283); g.fill();
+    if (e.dots) {
+      g.fillStyle = e.dots;
+      const seed = e.w * 7 + e.h;
+      for (let i = 0; i < 7; i++) {
+        const a = (seed * (i + 1) * 2.39) % 6.283, r = ((seed * (i + 3)) % 10) / 10 * 0.75;
+        g.fillRect(Math.round(cx + Math.cos(a) * r * e.w / 2), Math.round(cy + Math.sin(a) * r * e.h / 2), 1, 1);
+      }
+    }
+    g.fillStyle = e.shine ? 'rgba(255,255,230,0.95)' : 'rgba(255,255,255,0.55)';
+    g.fillRect(Math.round(cx - e.w / 4), Math.round(y + e.h * 0.25), 1, Math.max(1, Math.round(e.h * 0.25)));
+    if (crack > 0) {
+      g.strokeStyle = '#3b2a1c'; g.lineWidth = 0.6;
+      g.beginPath();
+      const yy = y + e.h * 0.42;
+      g.moveTo(x + 0.5, yy);
+      const n = Math.max(2, Math.round(crack * 5));
+      for (let i = 1; i <= n; i++) g.lineTo(x + 0.5 + (e.w - 1) * i / n, yy + (i % 2 ? -1.2 : 0.8));
+      g.stroke();
+    }
+    g.restore();
+  }
+
+  // ---- heli (WebAudio, alles pärast esimest puudutust) ----
+  let actx = null, muted = store.get('muted', false);
+  const muteBtn = document.getElementById('mute');
+  const setMuteLabel = () => { muteBtn.textContent = muted ? 'HELI: VÄLJAS' : 'HELI: SEES'; };
+  setMuteLabel();
+  function audio() {
+    if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch { actx = null; } }
+    if (actx && actx.state === 'suspended') actx.resume().catch(() => {});
+    return actx;
+  }
+  function tone(f0, f1, dur, type = 'square', vol = 0.06, when = 0) {
+    if (muted) return;
+    const a = audio(); if (!a) return;
+    const t = a.currentTime + when;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(a.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+  const SFX = {
+    jump: () => tone(420, 760, 0.12, 'square', 0.045),
+    land: () => tone(220, 160, 0.07, 'triangle', 0.05),
+    cluck: () => { tone(330, 260, 0.06, 'square', 0.03); tone(360, 300, 0.05, 'square', 0.025, 0.09); },
+    peep: () => { tone(1700, 2300, 0.07, 'sine', 0.05); tone(1900, 2600, 0.07, 'sine', 0.05, 0.11); },
+    hurt: () => { tone(500, 120, 0.3, 'sawtooth', 0.06); },
+    fox: () => tone(180, 120, 0.12, 'triangle', 0.035),
+    level: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, f, 0.12, 'square', 0.04, i * 0.09)),
+    // ki-ke-ri-kiiii
+    rooster: () => {
+      tone(620, 900, 0.12, 'sawtooth', 0.05, 0.0);
+      tone(700, 980, 0.12, 'sawtooth', 0.05, 0.16);
+      tone(760, 1080, 0.14, 'sawtooth', 0.05, 0.32);
+      tone(900, 1350, 0.25, 'sawtooth', 0.055, 0.5);
+      tone(1350, 700, 0.55, 'sawtooth', 0.05, 0.75);
+    },
+  };
+
+  // ---- olek ----
+  let mode = 'title';            // title | play | over
+  let hen, eggs, foxes, chicks, floats, shells, particles;
+  let score, lives, invuln, level, hatched, roosterDue, speedBase, worldX, nextEgg, nextFox, banner, frame;
+  let hi = store.get('hi', 0);
+  const total = store.get('total', {});            // kogu aja tibud tõugude kaupa
+  let seen = store.get('seen', 1);                 // mitu tõugu on kunagi nähtud
+  let runCount = {};
+  const keys = { left: false, right: false, down: false };
+
+  function reset() {
+    hen = { x: 40, y: GROUND - 16, vy: 0, ground: true, egg: null, nest: null, face: 1, anim: 0 };
+    eggs = []; foxes = []; chicks = []; floats = []; shells = []; particles = [];
+    score = 0; lives = LIVES_START; invuln = 0; level = 1; hatched = 0; roosterDue = 0;
+    speedBase = 1.1; worldX = 0; nextEgg = 60; nextFox = 260; banner = null; frame = 0;
+    runCount = {};
+    renderBreeds();
+  }
+
+  const homeX = () => Math.min(LW * 0.32, 90);
+  const henBox = () => hen.egg ? [hen.x + 3, hen.y + 2, 12, 11] : [hen.x + 3, hen.y + 2, 12, 13];
+  const overlap = (a, b) => a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1];
+
+  function breedFor() {
+    // uuemad tõud tulevad sagedamini, vanad jäävad ka alles; kuldmuna on alati harv
+    const n = Math.min(level, BREEDS.length);
+    const pool = [];
+    for (let i = 0; i < n; i++) {
+      let w = i === n - 1 ? 3 : 1;
+      if (BREEDS[i].gold) w = 0.35;
+      pool.push([i, w]);
+    }
+    let r = Math.random() * pool.reduce((s, p) => s + p[1], 0);
+    for (const [i, w] of pool) { if ((r -= w) <= 0) return BREEDS[i]; }
+    return BREEDS[0];
+  }
+
+  function spawnEgg() {
+    const b = breedFor();
+    eggs.push({ b, x: LW + 8, y: GROUND - b.egg.h, prog: 0, wob: 0, hatched: false });
+    nextEgg = 150 + Math.random() * 130 + b.egg.w * 4;
+  }
+  function spawnFox() {
+    foxes.push({ x: LW + 10, y: GROUND - 11, run: 0.9 + Math.random() * 0.5 + level * 0.08, anim: 0, jumped: false });
+    nextFox = Math.max(120, 300 - level * 22) + Math.random() * 200;
+  }
+
+  function jump() {
+    if (mode !== 'play') return;
+    if (hen.ground || hen.egg) {
+      if (hen.egg) { hen.nest = hen.egg; hen.egg = null; }
+      hen.vy = JUMP_V; hen.ground = false;
+      SFX.jump();
+    }
+  }
+
+  function addFloat(x, y, s, col = '#fffbe8', big = false) { floats.push({ x, y, s, t: 0, col, big }); }
+
+  function hatch(e) {
+    e.hatched = true;
+    hatched++;
+    const rooster = roosterDue >= ROOSTER_PITY - 1 || Math.random() < ROOSTER_CHANCE;
+    roosterDue = rooster ? 0 : roosterDue + 1;
+    const b = e.b;
+    const pts = Math.round(b.hatch / 10) * (b.gold ? 5 : 1) + (rooster ? 50 : 0);
+    score += pts;
+    runCount[b.id] = (runCount[b.id] || 0) + 1;
+    total[b.id] = (total[b.id] || 0) + 1;
+    store.set('total', total);
+    chicks.push({ b, rooster, x: e.x + b.egg.w / 2 - 4, y: GROUND - 9, vy: -2.2, anim: 0 });
+    shells.push({ x: e.x, y: e.y, vx: -0.6, vy: -1.6, e: b.egg, half: 0, t: 0 }, { x: e.x + b.egg.w / 2, y: e.y, vx: 0.5, vy: -1.9, e: b.egg, half: 1, t: 0 });
+    hen.egg = null;
+    if (hen.nest === e) hen.nest = null;
+    hen.y = GROUND - 16; hen.ground = true; hen.vy = 0;
+    if (rooster) {
+      lives = LIVES_MAX;
+      banner = { s: 'KIKERIKII!', sub: 'Kukk! Elud on täis.', t: 0, col: '#ffde59' };
+      SFX.rooster();
+    } else {
+      SFX.peep();
+    }
+    addFloat(e.x, e.y - 6, (rooster ? 'KUKK +' : '+') + pts, rooster ? '#ffde59' : '#fffbe8');
+    // level: iga paari tibu järel uus tõug
+    const lv = Math.min(BREEDS.length, 1 + Math.floor(hatched / HATCH_PER_LEVEL));
+    if (lv > level) {
+      level = lv;
+      speedBase = 1.1 + (level - 1) * 0.12;
+      if (!rooster) banner = { s: 'UUS TÕUG', sub: BREEDS[level - 1].name, t: 0, col: '#f1c75b', egg: BREEDS[level - 1].egg };
+      if (level > seen) { seen = level; store.set('seen', seen); }
+      SFX.level();
+    }
+    renderBreeds();
+  }
+
+  function hurt() {
+    if (invuln > 0) return;
+    lives--; invuln = INVULN;
+    SFX.hurt();
+    addFloat(hen.x, hen.y - 4, 'KAAK!', '#ff8a7a');
+    for (let i = 0; i < 10; i++) particles.push({ x: hen.x + 9, y: hen.y + 6, vx: (Math.random() - 0.5) * 2.4, vy: -Math.random() * 2, t: 0, c: Math.random() < 0.5 ? '#e39d58' : '#b5622a' });
+    if (hen.egg) { hen.nest = hen.egg; hen.egg = null; hen.vy = -2; }
+    if (lives <= 0) {
+      mode = 'over';
+      if (score > hi) { hi = score; store.set('hi', hi); }
+    }
+  }
+
+  // ---- uuendus ----
+  function update(dt) {
+    frame += dt;
+    if (banner && (banner.t += dt) > 170) banner = null;
+
+    // haudumise ajal liigub maailm aeglaselt (kana istub pesal), muidu tavakiirusel
+    const nesting = hen.egg || (hen.nest && !hen.nest.hatched && Math.abs((hen.x + 9) - (hen.nest.x + hen.nest.b.egg.w / 2)) < 16);
+    const ws = mode === 'title' ? 0.6 : (nesting ? speedBase * 0.22 : speedBase);
+    worldX += ws * dt;
+
+    if (mode === 'play') {
+      nextEgg -= ws * dt;
+      if (nextEgg <= 0) spawnEgg();
+      nextFox -= dt;
+      if (nextFox <= 0 && frame > 120) spawnFox();
+      if (invuln > 0) invuln -= dt;
+    }
+
+    // munad sõidavad maailmaga kaasa
+    for (const e of eggs) e.x -= ws * dt;
+
+    // kana
+    hen.anim += dt * (hen.ground ? speedBase * 0.18 : 0);
+    if (hen.egg) {
+      const e = hen.egg, b = e.b;
+      hen.x = e.x + b.egg.w / 2 - 9;
+      hen.y = e.y - 13 + Math.min(4, b.egg.h * 0.3);
+      e.prog += dt;
+      e.wob = e.prog > b.hatch * 0.7 ? Math.sin(frame * 0.6) * 0.12 : 0;
+      if (Math.floor(e.prog / 50) !== Math.floor((e.prog - dt) / 50)) SFX.cluck();
+      if (e.prog >= b.hatch) hatch(e);
+    } else {
+      const mv = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+      if (mv) hen.x += mv * 1.3 * dt;
+      else if (hen.nest && !hen.nest.hatched && !hen.ground) hen.x += -ws * dt;   // hüppab pesalt otse üles → jääb muna kohale
+      else if (hen.ground) hen.x += (homeX() - hen.x) * 0.02 * dt;
+      hen.x = Math.max(4, Math.min(LW * 0.6, hen.x));
+      if (!hen.ground) {
+        hen.vy += (GRAV + (keys.down ? 0.25 : 0)) * dt;
+        const prevBottom = hen.y + 14;
+        hen.y += hen.vy * dt;
+        // maandumine munale (ainult ülevalt)
+        if (hen.vy > 0) {
+          for (const e of eggs) {
+            if (e.hatched) continue;
+            const top = e.y, cx = hen.x + 9;
+            if (prevBottom <= top + 3 && hen.y + 14 >= top && cx > e.x - 3 && cx < e.x + e.b.egg.w + 3) {
+              hen.egg = e; hen.nest = e; hen.vy = 0; hen.ground = false;
+              SFX.land();
+              break;
+            }
+          }
+        }
+        if (!hen.egg && hen.y >= GROUND - 16) { hen.y = GROUND - 16; hen.vy = 0; hen.ground = true; if (hen.nest && hen.nest.x + hen.nest.b.egg.w < hen.x - 20) hen.nest = null; }
+      }
+    }
+    if (hen.nest && (hen.nest.hatched || hen.nest.x + hen.nest.b.egg.w < -4)) hen.nest = null;
+
+    // rebased
+    for (const f of foxes) {
+      f.x -= (ws + f.run) * dt;
+      f.anim += dt * 0.25;
+      if (mode === 'play' && overlap(henBox(), [f.x + 2, f.y + 3, 24, 7])) hurt();
+      if (!f.jumped && mode === 'play' && f.x + 26 < hen.x) { f.jumped = true; score += 5; addFloat(hen.x + 4, hen.y - 2, '+5', '#d7f0b0'); }
+    }
+    if (foxes.some(f => Math.abs(f.x - hen.x) < 60) && Math.random() < 0.01) SFX.fox();
+
+    // tibud jooksevad kana järel
+    chicks.forEach((c, i) => {
+      const tx = hen.x - 8 - (i % 14) * 9;
+      c.x += (tx - c.x) * 0.06 * dt;
+      c.vy += 0.25 * dt; c.y += c.vy * dt;
+      if (c.y >= GROUND - 9) { c.y = GROUND - 9; c.vy = Math.abs(tx - c.x) > 2 && Math.random() < 0.06 ? -1.2 : 0; }
+      c.anim += dt * 0.2;
+    });
+
+    eggs = eggs.filter(e => !e.hatched && e.x + e.b.egg.w > -6);
+    foxes = foxes.filter(f => f.x > -40);
+    for (const s of shells) { s.t += dt; s.x += s.vx * dt; s.vy += 0.18 * dt; s.y = Math.min(GROUND - 3, s.y + s.vy * dt); }
+    shells = shells.filter(s => s.t < 70);
+    for (const p of particles) { p.t += dt; p.x += p.vx * dt; p.vy += 0.12 * dt; p.y += p.vy * dt; }
+    particles = particles.filter(p => p.t < 50);
+    for (const f of floats) f.t += dt;
+    floats = floats.filter(f => f.t < 70);
+  }
+
+  // ---- joonistamine ----
+  const snap = v => Math.round(v);
+  function drawSky() {
+    const g = ctx.createLinearGradient(0, 0, 0, GROUND);
+    g.addColorStop(0, '#77c6ec'); g.addColorStop(1, '#d7f1fb');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, LW, GROUND);
+    // päike
+    ctx.fillStyle = 'rgba(255,240,170,0.35)'; ctx.beginPath(); ctx.arc(LW - 34, 22, 15, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#ffe98a'; ctx.beginPath(); ctx.arc(LW - 34, 22, 10, 0, 6.283); ctx.fill();
+    // pilved (parallaks)
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 6; i++) {
+      const span = LW + 80, x = ((i * 97 - worldX * 0.15) % span + span) % span - 40, y = 10 + (i * 37) % 30;
+      cloud(x, y, 1 + (i % 3) * 0.3);
+    }
+  }
+  function cloud(x, y, s) {
+    ctx.beginPath();
+    ctx.ellipse(x, y + 4 * s, 14 * s, 4 * s, 0, 0, 6.283);
+    ctx.ellipse(x - 5 * s, y + 1 * s, 6 * s, 5 * s, 0, 0, 6.283);
+    ctx.ellipse(x + 5 * s, y, 7 * s, 6 * s, 0, 0, 6.283);
+    ctx.fill();
+  }
+  function drawLand() {
+    // kaugemad künkad
+    ctx.fillStyle = '#a8d37f';
+    ctx.beginPath(); ctx.moveTo(0, GROUND);
+    for (let x = 0; x <= LW + 4; x += 4) ctx.lineTo(x, GROUND - 26 - Math.sin((x + worldX * 0.25) * 0.02) * 7 - Math.sin((x + worldX * 0.25) * 0.051) * 4);
+    ctx.lineTo(LW, GROUND); ctx.fill();
+    // laut ja silo (keskmine kiht)
+    const span = 420;
+    for (let k = -1; k < LW / span + 1; k++) {
+      const bx = k * span - ((worldX * 0.45) % span) + 150;
+      barn(bx, GROUND - 22);
+    }
+    ctx.fillStyle = '#86bf5a';
+    ctx.beginPath(); ctx.moveTo(0, GROUND);
+    for (let x = 0; x <= LW + 4; x += 4) ctx.lineTo(x, GROUND - 12 - Math.sin((x + worldX * 0.55) * 0.03) * 3);
+    ctx.lineTo(LW, GROUND); ctx.fill();
+    // aed (eesmine taustakiht)
+    const fo = (worldX * 0.8) % 16;
+    ctx.fillStyle = '#d9c39a';
+    ctx.fillRect(0, GROUND - 10, LW, 1.4); ctx.fillRect(0, GROUND - 6, LW, 1.4);
+    ctx.fillStyle = '#c4a874';
+    for (let x = -fo; x < LW; x += 16) ctx.fillRect(snap(x), GROUND - 12, 2, 12);
+    // maa
+    ctx.fillStyle = '#6aa83a'; ctx.fillRect(0, GROUND, LW, 3);
+    ctx.fillStyle = '#9b7748'; ctx.fillRect(0, GROUND + 3, LW, H - GROUND - 3);
+    ctx.fillStyle = '#86653b';
+    const go = worldX % 23;
+    for (let x = -go; x < LW; x += 23) { ctx.fillRect(snap(x), GROUND + 7, 3, 1); ctx.fillRect(snap(x + 11), GROUND + 12, 2, 1); }
+    ctx.fillStyle = '#4f8a2a';
+    for (let x = -(worldX % 9); x < LW; x += 9) ctx.fillRect(snap(x), GROUND - 1, 1, 2);
+    // lilled
+    for (let x = -(worldX % 37); x < LW; x += 37) { ctx.fillStyle = '#fff6c8'; ctx.fillRect(snap(x + 5), GROUND - 2, 1, 1); ctx.fillStyle = '#f2b33d'; ctx.fillRect(snap(x + 5), GROUND - 3, 1, 1); }
+  }
+  function barn(x, y) {
+    if (x < -70 || x > LW + 10) return;
+    ctx.fillStyle = '#b8392c'; ctx.fillRect(x, y - 18, 34, 22);
+    ctx.fillStyle = '#7b2219';
+    ctx.beginPath(); ctx.moveTo(x - 3, y - 18); ctx.lineTo(x + 17, y - 31); ctx.lineTo(x + 37, y - 18); ctx.fill();
+    ctx.fillStyle = '#f5ead6'; ctx.fillRect(x + 12, y - 10, 10, 14);
+    ctx.fillStyle = '#b8392c'; ctx.fillRect(x + 13, y - 9, 8, 12);
+    ctx.strokeStyle = '#f5ead6'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(x + 13, y - 9); ctx.lineTo(x + 21, y + 3); ctx.moveTo(x + 21, y - 9); ctx.lineTo(x + 13, y + 3); ctx.stroke();
+    ctx.fillStyle = '#c9c3b8'; ctx.fillRect(x + 40, y - 26, 10, 30);
+    ctx.fillStyle = '#9e978a'; ctx.beginPath(); ctx.arc(x + 45, y - 26, 5, Math.PI, 0); ctx.fill();
+  }
+
+  function draw(now) {
+    ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    drawSky();
+    drawLand();
+
+    // munad + haudumise ring
+    for (const e of eggs) {
+      const b = e.b;
+      drawEgg(ctx, snap(e.x), e.y, b.egg, e.wob, e.prog / b.hatch > 0.75 ? (e.prog / b.hatch - 0.75) * 4 : 0);
+      if (b.egg.shine && (frame / 8 | 0) % 6 === 0) { ctx.fillStyle = '#fffbe0'; ctx.fillRect(snap(e.x + b.egg.w - 2), e.y + 1, 1, 1); }
+      if (e.prog > 0) {
+        const cx = e.x + b.egg.w / 2, cy = e.y - 22, p = Math.min(1, e.prog / b.hatch);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(31,58,25,0.45)'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 6.283); ctx.stroke();
+        ctx.strokeStyle = p > 0.75 ? '#ffde59' : '#fffbe8';
+        ctx.beginPath(); ctx.arc(cx, cy, 5, -1.571, -1.571 + p * 6.283); ctx.stroke();
+      }
+    }
+    // koorepoolikud
+    for (const s of shells) {
+      ctx.globalAlpha = Math.max(0, 1 - s.t / 70);
+      ctx.save(); ctx.beginPath(); ctx.rect(s.x, s.y + (s.half ? 0 : -1), s.e.w / 2 + 0.5, s.e.h); ctx.clip();
+      drawEgg(ctx, s.x - (s.half ? s.e.w / 2 : 0), s.y, s.e); ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+    // tibud
+    for (const c of chicks) {
+      const fr = (c.anim | 0) % 2;
+      ctx.drawImage(c.rooster ? c.b.spr.rooster[fr] : c.b.spr.chick[fr], snap(c.x), snap(c.y - (c.rooster ? 2 : 0)));
+    }
+    // rebased (vaatavad vasakule)
+    for (const f of foxes) ctx.drawImage(FOX[(f.anim | 0) % 2], snap(f.x), snap(f.y));
+    // kana
+    if (!(invuln > 0 && (frame / 4 | 0) % 2)) {
+      let img;
+      if (hen.egg) img = (frame / 90 | 0) % 7 === 0 ? HEN.sitBlink : HEN.sit;
+      else if (!hen.ground) img = HEN.jump;
+      else img = (hen.anim | 0) % 2 ? HEN.walk1 : HEN.walk0;
+      ctx.drawImage(img, snap(hen.x), snap(hen.y + (hen.egg ? Math.sin(frame * 0.15) * 0.4 : 0)));
+    }
+    for (const p of particles) { ctx.fillStyle = p.c; ctx.fillRect(snap(p.x), snap(p.y), 1, 1); }
+
+    // HUD
+    ctx.textBaseline = 'top';
+    ctx.font = '7px Silkscreen, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#1f3a19';
+    for (let i = 0; i < LIVES_MAX; i++) heart(5 + i * 9, 5, i < lives);
+    ctx.fillStyle = '#1f3a19';
+    ctx.fillText('TIBUD ' + chicks.length, 5, 15);
+    ctx.textAlign = 'right';
+    ctx.fillText(String(score).padStart(5, '0'), LW - 5, 5);
+    ctx.fillStyle = 'rgba(31,58,25,0.7)';
+    ctx.fillText('REKORD ' + String(hi).padStart(5, '0'), LW - 5, 14);
+    if (mode !== 'title') { ctx.fillText(BREEDS[level - 1].name.toUpperCase(), LW - 5, 23); }
+
+    for (const f of floats) {
+      ctx.globalAlpha = Math.max(0, 1 - f.t / 70);
+      ctx.textAlign = 'center'; ctx.font = '6px Silkscreen, monospace';
+      ctx.fillStyle = '#1f3a19'; ctx.fillText(f.s, f.x + 9 + 0.6, f.y - f.t * 0.3 + 0.6);
+      ctx.fillStyle = f.col; ctx.fillText(f.s, f.x + 9, f.y - f.t * 0.3);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.textAlign = 'center';
+    if (banner) {
+      const a = banner.t < 12 ? banner.t / 12 : banner.t > 140 ? Math.max(0, 1 - (banner.t - 140) / 30) : 1;
+      ctx.globalAlpha = a;
+      ctx.fillStyle = 'rgba(31,58,25,0.78)'; ctx.fillRect(LW / 2 - 70, 30, 140, 30);
+      ctx.font = 'bold 12px Silkscreen, monospace';
+      ctx.fillStyle = banner.col; ctx.fillText(banner.s, LW / 2, 33);
+      ctx.font = '7px Silkscreen, monospace';
+      ctx.fillStyle = '#fbf3df'; ctx.fillText(banner.sub, LW / 2, 48);
+      if (banner.egg) drawEgg(ctx, LW / 2 + 58 - banner.egg.w, 44 - banner.egg.h / 2, banner.egg);
+      ctx.globalAlpha = 1;
+    }
+    if (mode === 'title') panel('KANAEMA', ['Hüppa munale ja haudu tibu välja', 'Rebasest hüppa üle', '', (frame / 40 | 0) % 2 ? 'TÜHIK / PUUDUTA — ALUSTA' : '']);
+    if (mode === 'over') panel('MÄNG LÄBI', ['Punkte ' + score + (score >= hi && score > 0 ? '  · UUS REKORD!' : ''), 'Tibusid ' + chicks.length + ' · ' + BREEDS[level - 1].name, '', (frame / 40 | 0) % 2 ? 'TÜHIK / PUUDUTA — UUESTI' : '']);
+  }
+  function panel(title, lines) {
+    const w = Math.min(LW - 20, 190), x = LW / 2 - w / 2;
+    ctx.fillStyle = 'rgba(31,58,25,0.82)'; ctx.fillRect(x, 26, w, 58);
+    ctx.fillStyle = '#f1c75b'; ctx.fillRect(x, 26, w, 1); ctx.fillRect(x, 83, w, 1);
+    ctx.font = 'bold 12px Silkscreen, monospace'; ctx.fillStyle = '#f1c75b'; ctx.fillText(title, LW / 2, 31);
+    ctx.font = '7px Silkscreen, monospace'; ctx.fillStyle = '#fbf3df';
+    lines.forEach((l, i) => ctx.fillText(l, LW / 2, 46 + i * 9));
+  }
+  function heart(x, y, full) {
+    ctx.fillStyle = full ? '#d6302c' : 'rgba(31,58,25,0.3)';
+    const p = ['.xx.xx.', 'xxxxxxx', 'xxxxxxx', '.xxxxx.', '..xxx..', '...x...'];
+    p.forEach((r, j) => [...r].forEach((ch, i) => { if (ch === 'x') ctx.fillRect(x + i, y + j, 1, 1); }));
+  }
+
+  // ---- tibukogu (HTML) ----
+  const breedsEl = document.getElementById('breeds');
+  function renderBreeds() {
+    breedsEl.textContent = '';
+    BREEDS.forEach((b, i) => {
+      const open = i < Math.max(seen, level);
+      const d = document.createElement('div');
+      d.className = 'breed' + (open ? '' : ' locked') + (mode === 'play' && i === level - 1 ? ' new' : '');
+      const c = document.createElement('canvas'); c.width = 22; c.height = 22;
+      const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+      if (open) { drawEgg(g, 2, 21 - b.egg.h, b.egg); g.drawImage(b.spr.chick[0], 12, 12); }
+      else { g.fillStyle = '#3a5a32'; g.font = 'bold 14px sans-serif'; g.textAlign = 'center'; g.fillText('?', 11, 17); }
+      const name = document.createElement('b'); name.textContent = open ? b.name : 'Veel avastamata';
+      const now = document.createElement('span'); now.textContent = 'Selles mängus: ' + (runCount[b.id] || 0);
+      const all = document.createElement('span'); all.textContent = 'Kokku: ' + (total[b.id] || 0);
+      d.append(c, name, now, all);
+      breedsEl.append(d);
+    });
+  }
+
+  // ---- sisend ----
+  function startOrJump() {
+    audio();
+    if (mode === 'play') jump();
+    else { reset(); mode = 'play'; }
+  }
+  window.addEventListener('keydown', e => {
+    if (e.target && /INPUT|TEXTAREA|BUTTON/.test(e.target.tagName) && e.key !== 'ArrowUp') return;
+    const k = e.key;
+    if (k === ' ' || k === 'ArrowUp' || k === 'w' || k === 'W') { e.preventDefault(); startOrJump(); }
+    else if (k === 'ArrowLeft' || k === 'a' || k === 'A') { e.preventDefault(); keys.left = true; }
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D') { e.preventDefault(); keys.right = true; }
+    else if (k === 'ArrowDown' || k === 's' || k === 'S') { e.preventDefault(); keys.down = true; }
+    else if (k === 'm' || k === 'M') toggleMute();
+  });
+  window.addEventListener('keyup', e => {
+    const k = e.key;
+    if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.left = false;
+    if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.right = false;
+    if (k === 'ArrowDown' || k === 's' || k === 'S') keys.down = false;
+  });
+  // puude: keskel hüpe, servas hoidmine liigutab
+  const touches = new Map();
+  stage.addEventListener('pointerdown', e => {
+    if (e.target === muteBtn) return;
+    stage.focus({ preventScroll: true });
+    const r = stage.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width;
+    if (mode === 'play' && e.pointerType !== 'mouse' && (fx < 0.18 || fx > 0.82)) {
+      const side = fx < 0.18 ? 'left' : 'right';
+      keys[side] = true; touches.set(e.pointerId, side);
+    } else startOrJump();
+    e.preventDefault();
+  });
+  const endTouch = e => { const s = touches.get(e.pointerId); if (s) { keys[s] = false; touches.delete(e.pointerId); } };
+  stage.addEventListener('pointerup', endTouch);
+  stage.addEventListener('pointercancel', endTouch);
+  function toggleMute() { muted = !muted; store.set('muted', muted); setMuteLabel(); }
+  muteBtn.addEventListener('click', e => { e.stopPropagation(); toggleMute(); });
+
+  // ---- suurus ja tsükkel ----
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1;
+    scale = r.height / H;
+    LW = r.width / scale;
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  }
+  new ResizeObserver(resize).observe(stage);
+  resize();
+  reset();
+  let last = performance.now();
+  function loop(now) {
+    requestAnimationFrame(loop);
+    if (document.hidden) { last = now; return; }
+    const dt = Math.min(3, (now - last) / 16.667);
+    last = now;
+    update(dt);
+    draw(now);
+  }
+  requestAnimationFrame(loop);
+  if (document.fonts && document.fonts.load) document.fonts.load('7px Silkscreen').catch(() => {});
+})();
+</script>
+
+</body>
+</html>
