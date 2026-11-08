@@ -603,6 +603,9 @@
       var a = el('a', null, n.label); a.href = '#' + n.id;
       nav.appendChild(a);
     });
+    // eraldi mängude leht (Kanaema, Kas siin keegi töötab? …)
+    var g = el('a', null, S('gamesNav')); g.href = 'mangud/';
+    nav.appendChild(g);
   }
 
   function renderFooter(settings) {

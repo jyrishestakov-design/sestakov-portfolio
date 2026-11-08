@@ -29,7 +29,7 @@
       ufoHelp: '↑ ↓ lenda · ← → edasi/tagasi · X kiir alla · Z laser · hoia Z: superjõud', ufoHelpTouch: 'vasakul: üles / alla · paremal üleval: Z (hoia: superjõud) · paremal all: kiir',
       ufoAgain: 'uuesti: tühik', ufoAgainTouch: 'uuesti: puuduta',
       ufoWin: 'MISSION COMPLETE', ufoOver: 'G A M E   O V E R',
-      gamesBack: '← Mängud', gamesPickViking: '▶ VIKING RIDER', gamesPickUfo: '▶ UFO',
+      gamesBack: '← Mängud', gamesNav: 'Mängud', gamesPickViking: '▶ VIKING RIDER', gamesPickUfo: '▶ UFO',
       gamesLabel: 'Minimängud: Viking Rider ja UFO'
     },
     en: {
@@ -59,7 +59,7 @@
       ufoHelp: '↑ ↓ fly · ← → forward/back · X beam down · Z laser · hold Z: super power', ufoHelpTouch: 'left: up / down · top right: Z (hold: super power) · bottom right: beam',
       ufoAgain: 'again: space', ufoAgainTouch: 'again: tap',
       ufoWin: 'MISSION COMPLETE', ufoOver: 'G A M E   O V E R',
-      gamesBack: '← Games', gamesPickViking: '▶ VIKING RIDER', gamesPickUfo: '▶ UFO',
+      gamesBack: '← Games', gamesNav: 'Games', gamesPickViking: '▶ VIKING RIDER', gamesPickUfo: '▶ UFO',
       gamesLabel: 'Mini games: Viking Rider and UFO'
     },
     fi: {
@@ -89,7 +89,7 @@
       ufoHelp: '↑ ↓ lennä · ← → eteen/taakse · X säde alas · Z laser · pidä Z: supervoima', ufoHelpTouch: 'vasemmalla: ylös / alas · oikealla ylhäällä: Z (pidä: supervoima) · oikealla alhaalla: säde',
       ufoAgain: 'uudelleen: välilyönti', ufoAgainTouch: 'uudelleen: napauta',
       ufoWin: 'MISSION COMPLETE', ufoOver: 'G A M E   O V E R',
-      gamesBack: '← Pelit', gamesPickViking: '▶ VIKING RIDER', gamesPickUfo: '▶ UFO',
+      gamesBack: '← Pelit', gamesNav: 'Pelit', gamesPickViking: '▶ VIKING RIDER', gamesPickUfo: '▶ UFO',
       gamesLabel: 'Minipelit: Viking Rider ja UFO'
     }
   };
