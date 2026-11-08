@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UFO</title>
+<meta name="description" content="Öine lendav taldrik: korja lehmi emalaevale, väldi Men in Black agente. shesta.eu">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#17181a;--panel:#222428;--line:#34373d;--fg:#ecebe6;--muted:#9a9c9f;--hazard:#f2c230;--rack:#e8792b;
+ --display:"Bungee","Impact",system-ui,sans-serif;--body:"Barlow Condensed","Arial Narrow",system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:18px;
+ padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 32px}
+[hidden]{display:none!important}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.backlinks{display:flex;gap:16px;flex-wrap:wrap;font-size:16px;font-weight:600}
+.backlinks a{color:var(--muted);text-decoration:none}
+.backlinks a:hover,.backlinks a:focus-visible{color:var(--hazard)}
+h1{font-family:var(--display);font-weight:400;color:var(--hazard);font-size:clamp(26px,5vw,40px);margin:0}
+.lead{margin:0;color:var(--muted);max-width:68ch;line-height:1.4}
+.stage{background:#0c0d11;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.mount{width:100%;height:clamp(220px,38vw,420px);position:relative;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none;cursor:pointer}
+.mount:focus-visible{outline:2px solid var(--hazard);outline-offset:-2px}
+.keys{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0;padding:0;list-style:none;color:var(--muted);font-size:17px}
+.keys li{display:flex;gap:6px;align-items:center}
+kbd{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-bottom-width:3px;border-radius:3px;padding:1px 6px}
+.tip{margin:0;color:var(--hazard)}
+.touch{display:none;margin:0;color:var(--muted)}
+@media (pointer:coarse){.touch{display:block}.keys{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="backlinks"><a href="../../">← shesta.eu</a><a href="../">Kõik mängud</a></nav>
+  <h1>UFO</h1>
+  <p class="lead">Öine lendav taldrik. Tõmba kiirega lehmi emalaevale, tulista Z-laseriga ja ära lase Men in Black agentidel end alla võtta. Tasemetega läheb ufo suuremaks.</p>
+  <div class="stage"><div class="mount" id="mount" tabindex="0" aria-label="UFO"></div></div>
+  <ul class="keys" aria-label="Klahvid"><li><kbd>Tühik</kbd> start</li><li><kbd>↑ ↓</kbd> lenda</li><li><kbd>← →</kbd> edasi / tagasi</li><li><kbd>X</kbd> kiir alla</li><li><kbd>Z</kbd> laser</li><li><kbd>hoia Z</kbd> superjõud</li></ul>
+  <p class="touch">Vasakul: üles / alla · paremal üleval: Z (hoia: superjõud) · paremal all: kiir</p>
+  
+</div>
+<script src="../../js/ufo-logic.js"></script>
+<script src="../../js/ufo.js"></script>
+<script>
+  // samad tekstid mis avalehe mänguribal (js/i18n-strings.js, eesti keel)
+  window.startUfo(document.getElementById("mount"), {
+    ufoStart: "TÜHIK — MÄNGI", ufoStartTouch: "PUUDUTA — MÄNGI",
+    ufoHelp: "↑ ↓ lenda · ← → edasi/tagasi · X kiir alla · Z laser · hoia Z: superjõud",
+    ufoHelpTouch: "vasakul: üles / alla · paremal üleval: Z (hoia: superjõud) · paremal all: kiir",
+    ufoAgain: "uuesti: tühik", ufoAgainTouch: "uuesti: puuduta",
+    ufoWin: "MISSION COMPLETE", ufoOver: "G A M E   O V E R"
+  });
+</script>
+</body>
+</html>
